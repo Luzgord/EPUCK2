@@ -76,7 +76,7 @@ int main(void){
 #ifdef SEND_FROM_MIC
     //starts the microphones processing thread.
     //it calls the callback given in parameter when samples are ready
-    mic_start(&processAudioData);
+    mic_start(&processAudioData);  
 #endif  /* SEND_FROM_MIC */
 
     /* Infinite loop. */
@@ -170,8 +170,4 @@ uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
 
 void __stack_chk_fail(void){
     chSysHalt("Stack smashing detected");
-}
-
-void audio_proces_start(void){
-    chThdCreateStatic(waAudioProcessingThread, sizeof(waAudioProcessingThread), NORMALPRIO, AudioProcessingThread, NULL);
 }

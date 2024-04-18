@@ -28,10 +28,6 @@ static float micBack_output[FFT_SIZE];
 
 float *fft_ptr = micLeft_output;
 fft_ptr[10];
-// static unint32_t average_intensity_micLeft = 0; 
-// static unint32_t average_intensity_micRight = 0;
-// static unint32_t average_intensity_micFront = 0;
-// static unint32_t average_intensity_micBack = 0;
 
 #define MIN_VALUE_THRESHOLD	10000 
 
@@ -50,6 +46,77 @@ fft_ptr[10];
 #define FREQ_RIGHT_H		(FREQ_RIGHT+1)
 #define FREQ_BACKWARD_L		(FREQ_BACKWARD-1)
 #define FREQ_BACKWARD_H		(FREQ_BACKWARD+1)
+
+static QUADRANT_NAME_t quadrant_status = QUADRANT_0;
+
+static THD_WORKING_AREA(waAudioProcessingThread, 2048); // Taille badasse Ok? 
+static THD_FUNCTION(AudioProcessingThread, arg) {
+	
+	float *fft_ptr_maxFront_intensity = NULL; // FFT: 0-512 frequences positives croissantes, 513-1023 frequences negatives decroissantes
+	float *fft_ptr_maxBack_intensity = NULL;
+	float *fft_ptr_maxRight_intensity = NULL;
+	float *fft_ptr_maxLeft_intensity = NULL;
+	float *index_fft_ptr = NULL;
+	
+	
+	
+	while(1){
+		
+		// Inits the pointers and search for the max intensity in each microphone data
+		//pointer are use to use a minimum of memory
+		for(uint16_t i = 0; i < MAX_VALUE_PTR_FFT_SIZE; i++){
+			if(i==0){
+				*fft_ptr_maxFront_intensity = 0;
+				*fft_ptr_maxBack_intensity = 0;
+				*fft_ptr_maxRight_intensity = 0;
+				*fft_ptr_maxLeft_intensity = 0;
+			}
+
+			*fft_ptr = micFront_output[i];
+			if(*fft_ptr > *fft_ptr_maxFront_intensity){
+				*fft_ptr_maxFront_intensity = *fft_ptr;
+			}
+			
+			*fft_ptr = micBack_output[i];
+			if(*fft_ptr > *fft_ptr_maxBack_intensity){
+				*fft_ptr_maxBack_intensity = *fft_ptr;
+			}
+			
+			*fft_ptr = micRight_output[i];
+			if(*fft_ptr > *fft_ptr_maxRight_intensity){
+				*fft_ptr_maxRight_intensity = *fft_ptr;
+			}
+			
+			*fft_ptr = micLeft_output[i];
+			if(*fft_ptr > *fft_ptr_maxLeft_intensity){
+				*fft_ptr_maxLeft_intensity = *fft_ptr;
+			}			
+		}
+// 		     #Front#  
+// 		    # Q1|Q2 # 
+// 	  Left #---------# Right
+// 		    # Q3|Q4 #
+//  		 #Back# 
+//   		 
+		// Search for the quadrant of the max intensity
+		if(*fft_ptr_maxFront_intensity - *fft_ptr_maxBack_intensity > 0){ //=> quadrant 1 ou 2 soit aller devant
+			if(*fft_ptr_maxRight_intensity - *fft_ptr_maxLeft_intensity < 0){
+				quadrant_status = QUADRANT_1;
+			}
+			else{
+				quadrant_status = QUADRANT_2;
+			}
+		}
+		else{
+			if(*fft_ptr_maxRight_intensity - *fft_ptr_maxLeft_intensity > 0){
+				quadrant_status = QUADRANT_4;
+			}
+			else{
+				quadrant_status = QUADRANT_3;
+			}
+		}
+	}
+}
 
 /*
 *	Simple function used to detect the highest value in a buffer
@@ -210,7 +277,6 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 	}
 }
 
-static THD_WORKING_AREA(waAudioProcessingThread, 256);
-static THD_FUNCTION(waAudioProcessingThread, arg) {
-
+void audio_proces_start(void){
+    chThdCreateStatic(waAudioProcessingThread, sizeof(waAudioProcessingThread), NORMALPRIO, AudioProcessingThread, NULL);
 }

@@ -2,7 +2,8 @@
 #define AUDIO_PROCESSING_H
 
 
-#define FFT_SIZE 		1024	
+#define FFT_SIZE 				1024	
+#define MAX_VALUE_PTR_FFT_SIZE 	512
 
 typedef enum {
 	//2 times FFT_SIZE because these arrays contain complex numbers (real + imaginary)
@@ -17,7 +18,15 @@ typedef enum {
 	BACK_OUTPUT
 } BUFFER_NAME_t;
 
-// static max_intensity = 0; 
+typedef enum {									
+	QUADRANT_0 = 0,
+	QUADRANT_1,						//			Q_0 = test_state					
+	QUADRANT_2,						//		Q_1		Q_2
+	QUADRANT_3,						//		Q_3		Q_4
+	QUADRANT_4
+} QUADRANT_NAME_t;
+
+void audio_proces_start(void);
 
 void processAudioData(int16_t *data, uint16_t num_samples);
 
