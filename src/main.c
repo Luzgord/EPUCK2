@@ -63,6 +63,9 @@ int main(void){
     //inits the motors
     motors_init();
 
+    //inits the microphones processing thread
+    audio_proces_start();
+
     //temp tab used to store values in complex_float format
     //needed bx doFFT_c
     static complex_float temp_tab[FFT_SIZE];
@@ -167,4 +170,8 @@ uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
 
 void __stack_chk_fail(void){
     chSysHalt("Stack smashing detected");
+}
+
+void audio_proces_start(void){
+    chThdCreateStatic(waAudioProcessingThread, sizeof(waAudioProcessingThread), NORMALPRIO, AudioProcessingThread, NULL);
 }
