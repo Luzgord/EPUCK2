@@ -25,6 +25,14 @@ static float micRight_output[FFT_SIZE];
 static float micFront_output[FFT_SIZE];
 static float micBack_output[FFT_SIZE];
 
+
+float *fft_ptr = micLeft_output;
+fft_ptr[10];
+// static unint32_t average_intensity_micLeft = 0; 
+// static unint32_t average_intensity_micRight = 0;
+// static unint32_t average_intensity_micFront = 0;
+// static unint32_t average_intensity_micBack = 0;
+
 #define MIN_VALUE_THRESHOLD	10000 
 
 #define MIN_FREQ		10	//we don't analyze before this index to not use resources for nothing
