@@ -83,7 +83,7 @@ void sound_remote(float* data){
 		left_motor_set_speed(0);
 		right_motor_set_speed(0);
 	}
-}
+} 
 
 /*
 *	Callback called when the demodulation of the four microphones is done.
