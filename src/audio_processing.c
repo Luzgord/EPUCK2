@@ -210,4 +210,7 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 	}
 }
 
+static THD_WORKING_AREA(waAudioProcessingThread, 256);
+static THD_FUNCTION(waAudioProcessingThread, arg) {
 
+}
