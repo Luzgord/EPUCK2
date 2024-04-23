@@ -40,7 +40,7 @@ void wait_send_to_computer(void);
 */
 float* get_audio_buffer_ptr(BUFFER_NAME_t name);
 
-void reset_all_pointer_values(float *Front,float *,float *,float *)
+// void reset_all_pointer_values(float *Front,float *,float *,float *)
 
 void send_quadrant_to_computer(QUADRANT_NAME_t name);
 

@@ -25,10 +25,6 @@ static float micRight_output[FFT_SIZE];
 static float micFront_output[FFT_SIZE];
 static float micBack_output[FFT_SIZE];
 
-
-float *fft_ptr = micLeft_output;
-fft_ptr[10];
-
 #define MIN_VALUE_THRESHOLD	10000 
 
 #define MIN_FREQ		10	//we don't analyze before this index to not use resources for nothing
@@ -48,10 +44,13 @@ fft_ptr[10];
 #define FREQ_BACKWARD_H		(FREQ_BACKWARD+1)
 
 static QUADRANT_NAME_t quadrant_status = QUADRANT_0;
-
-static THD_WORKING_AREA(waAudioProcessingThread, 2048); // Taille badasse Ok? 
+// Taille badasse Ok?
+static THD_WORKING_AREA(waAudioProcessingThread, 2048);  
 static THD_FUNCTION(AudioProcessingThread, arg) {
 	
+	chRegSetThreadName(__FUNCTION__);
+	(void)arg;
+
 	float *fft_ptr_maxFront_intensity = NULL; // FFT: 0-512 frequences positives croissantes, 513-1023 frequences negatives decroissantes
 	float *fft_ptr_maxBack_intensity = NULL;
 	float *fft_ptr_maxRight_intensity = NULL;
@@ -87,9 +86,9 @@ static THD_FUNCTION(AudioProcessingThread, arg) {
 				*fft_ptr_maxRight_intensity = *fft_ptr_index;
 			}
 			
-			*fft_ptr = micLeft_output[i];
-			if(*fft_ptr > *fft_ptr_maxLeft_intensity){
-				*fft_ptr_maxLeft_intensity = *fft_ptr;
+			*fft_ptr_index = micLeft_output[i];
+			if(*fft_ptr_index > *fft_ptr_maxLeft_intensity){
+				*fft_ptr_maxLeft_intensity = *fft_ptr_index;
 			}			
 		}
 // 		     #Front#  

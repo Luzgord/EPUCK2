@@ -62,7 +62,8 @@ int main(void){
     timer12_start();
     //inits the motors
     motors_init();
-
+    //inits the microphones
+    // mic_start(&processAudioData);
     //inits the microphones processing thread
     audio_proces_start();
 
