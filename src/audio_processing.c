@@ -56,9 +56,9 @@ static THD_FUNCTION(AudioProcessingThread, arg) {
 	float *fft_ptr_maxBack_intensity = NULL;
 	float *fft_ptr_maxRight_intensity = NULL;
 	float *fft_ptr_maxLeft_intensity = NULL;
-	float *index_fft_ptr = NULL;
+	float *fft_ptr_index = NULL; // pointer to the current index of the FFT array
 	
-	
+	float null_intensity = 0; 
 	
 	while(1){
 		
@@ -66,25 +66,25 @@ static THD_FUNCTION(AudioProcessingThread, arg) {
 		//pointer are use to use a minimum of memory
 		for(uint16_t i = 0; i < MAX_VALUE_PTR_FFT_SIZE; i++){
 			if(i==0){
-				*fft_ptr_maxFront_intensity = 0;
-				*fft_ptr_maxBack_intensity = 0;
-				*fft_ptr_maxRight_intensity = 0;
-				*fft_ptr_maxLeft_intensity = 0;
+				fft_ptr_maxFront_intensity = &null_intensity;
+				fft_ptr_maxBack_intensity =	 &null_intensity;
+				fft_ptr_maxRight_intensity = &null_intensity;
+				fft_ptr_maxLeft_intensity = &null_intensity;
 			}
 
-			*fft_ptr = micFront_output[i];
-			if(*fft_ptr > *fft_ptr_maxFront_intensity){
-				*fft_ptr_maxFront_intensity = *fft_ptr;
+			*fft_ptr_index = micFront_output[i];
+			if(*fft_ptr_index > *fft_ptr_maxFront_intensity){
+				*fft_ptr_maxFront_intensity = *fft_ptr_index;
 			}
 			
-			*fft_ptr = micBack_output[i];
-			if(*fft_ptr > *fft_ptr_maxBack_intensity){
-				*fft_ptr_maxBack_intensity = *fft_ptr;
+			*fft_ptr_index = micBack_output[i];
+			if(*fft_ptr_index > *fft_ptr_maxBack_intensity){
+				*fft_ptr_maxBack_intensity = *fft_ptr_index;
 			}
 			
-			*fft_ptr = micRight_output[i];
-			if(*fft_ptr > *fft_ptr_maxRight_intensity){
-				*fft_ptr_maxRight_intensity = *fft_ptr;
+			*fft_ptr_index = micRight_output[i];
+			if(*fft_ptr_index > *fft_ptr_maxRight_intensity){
+				*fft_ptr_maxRight_intensity = *fft_ptr_index;
 			}
 			
 			*fft_ptr = micLeft_output[i];
@@ -107,7 +107,7 @@ static THD_FUNCTION(AudioProcessingThread, arg) {
 				quadrant_status = QUADRANT_2;
 			}
 		}
-		else{
+		else{ //=> quadrant 3 ou 4 soit aller derriere
 			if(*fft_ptr_maxRight_intensity - *fft_ptr_maxLeft_intensity > 0){
 				quadrant_status = QUADRANT_4;
 			}
@@ -115,7 +115,15 @@ static THD_FUNCTION(AudioProcessingThread, arg) {
 				quadrant_status = QUADRANT_3;
 			}
 		}
-	}
+		//send the quadrant to the computer
+		send_quadrant_to_computer(quadrant_status);
+
+		}
+}
+
+
+void send_quadrant_to_computer(QUADRANT_NAME_t name){
+	chprintf((BaseSequentialStream *)&SDU1, "Quadrant : %d\n", name);
 }
 
 /*
