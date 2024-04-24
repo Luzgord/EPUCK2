@@ -72,8 +72,8 @@ static THD_FUNCTION(AudioProcessingThread, arg) {
 //  		 #Back# 
 //   		 
 		// Search for the quadrant of the max intensity
-		if(*fft_ptr_maxFront_intensity - *fft_ptr_maxBack_intensity > 0){ //=> quadrant 1 ou 2 soit aller devant
-			if(*fft_ptr_maxRight_intensity - *fft_ptr_maxLeft_intensity < 0){
+		if(maxFront_intensity - maxBack_intensity > 0){ //=> quadrant 1 ou 2 soit aller devant
+			if(maxRight_intensity - maxLeft_intensity < 0){
 				quadrant_status = QUADRANT_1;
 			}
 			else{
@@ -81,7 +81,7 @@ static THD_FUNCTION(AudioProcessingThread, arg) {
 			}
 		}
 		else{ //=> quadrant 3 ou 4 soit aller derriere
-			if(*fft_ptr_maxRight_intensity - *fft_ptr_maxLeft_intensity > 0){
+			if(maxRight_intensity - maxLeft_intensity > 0){
 				quadrant_status = QUADRANT_4;
 			}
 			else{
@@ -113,6 +113,7 @@ void find_highest_peak(float* buffer, float* max_value){
 	for(uint16_t i = MIN_FREQ ; i <= MAX_FREQ ; i++){ //Band pass filter
 		if(buffer[i] > *max_value){
 			max_value = &buffer[i];
+		}
 	}
 } 
 

@@ -14,6 +14,7 @@
 #include "audio_processing.h"
 #include "fft.h"
 #include "communications.h"
+#include "siren.h"
 #include <gpt_lld.h>
 
 #include <sensors/proximity.h>

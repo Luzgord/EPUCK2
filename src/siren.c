@@ -1,7 +1,8 @@
 #include <ch.h>
 #include <hal.h>
+#include <leds.h>
+#include <audio/audio_thread.h>
 #include "siren.h"
-#include "leds.h"
 
 static bool fsiren = 1; //arbitrary value when starting siren
 
