@@ -25,7 +25,7 @@ static float micRight_output[FFT_SIZE];
 static float micFront_output[FFT_SIZE];
 static float micBack_output[FFT_SIZE];
 
-#define MIN_VALUE_THRESHOLD	10000 
+#define MIN_VALUE_THRESHOLD	10000 //minimum value to detect a peak
 
 #define MIN_FREQ		10	//we don't analyze before this index to not use resources for nothing
 #define FREQ_FORWARD	16	//250Hz
@@ -45,52 +45,26 @@ static float micBack_output[FFT_SIZE];
 
 static QUADRANT_NAME_t quadrant_status = QUADRANT_0;
 // Taille badasse Ok?
-static THD_WORKING_AREA(waAudioProcessingThread, 2048);  
+static THD_WORKING_AREA(waAudioProcessingThread, 128);  
 static THD_FUNCTION(AudioProcessingThread, arg) {
 	
 	chRegSetThreadName(__FUNCTION__);
 	(void)arg;
 
-	float *fft_ptr_maxFront_intensity = NULL; // FFT: 0-512 frequences positives croissantes, 513-1023 frequences negatives decroissantes
-	float *fft_ptr_maxBack_intensity = NULL;
-	float *fft_ptr_maxRight_intensity = NULL;
-	float *fft_ptr_maxLeft_intensity = NULL;
+	float maxFront_intensity = MIN_VALUE_THRESHOLD; // FFT: 0-512 frequences positives croissantes, 513-1023 frequences negatives decroissantes
+	float maxBack_intensity = MIN_VALUE_THRESHOLD;
+	float maxRight_intensity = MIN_VALUE_THRESHOLD;
+	float maxLeft_intensity = MIN_VALUE_THRESHOLD;
 	float *fft_ptr_index = NULL; // pointer to the current index of the FFT array
-	
-	float null_intensity = 0; 
+		 
 	
 	while(1){
+		find_highest_peak(&micLeft_output, &maxLeft_intensity);
+		find_highest_peak(&micRight_output, &maxRight_intensity);
+		find_highest_peak(&micFront_output, &maxFront_intensity);
+		find_highest_peak(&micBack_output, &maxBack_intensity);
 		
-		// Inits the pointers and search for the max intensity in each microphone data
-		//pointer are use to use a minimum of memory
-		for(uint16_t i = 0; i < MAX_VALUE_PTR_FFT_SIZE; i++){
-			if(i==0){
-				fft_ptr_maxFront_intensity = &null_intensity;
-				fft_ptr_maxBack_intensity =	 &null_intensity;
-				fft_ptr_maxRight_intensity = &null_intensity;
-				fft_ptr_maxLeft_intensity = &null_intensity;
-			}
-
-			*fft_ptr_index = micFront_output[i];
-			if(*fft_ptr_index > *fft_ptr_maxFront_intensity){
-				*fft_ptr_maxFront_intensity = *fft_ptr_index;
-			}
-			
-			*fft_ptr_index = micBack_output[i];
-			if(*fft_ptr_index > *fft_ptr_maxBack_intensity){
-				*fft_ptr_maxBack_intensity = *fft_ptr_index;
-			}
-			
-			*fft_ptr_index = micRight_output[i];
-			if(*fft_ptr_index > *fft_ptr_maxRight_intensity){
-				*fft_ptr_maxRight_intensity = *fft_ptr_index;
-			}
-			
-			*fft_ptr_index = micLeft_output[i];
-			if(*fft_ptr_index > *fft_ptr_maxLeft_intensity){
-				*fft_ptr_maxLeft_intensity = *fft_ptr_index;
-			}			
-		}
+		
 // 		     #Front#  
 // 		    # Q1|Q2 # 
 // 	  Left #---------# Right
@@ -129,41 +103,16 @@ void send_quadrant_to_computer(QUADRANT_NAME_t name){
 *	Simple function used to detect the highest value in a buffer
 *	and to execute a motor command depending on it
 */
-void sound_remote(float* data){
-	float max_norm = MIN_VALUE_THRESHOLD;
-	int16_t max_norm_index = -1; 
+void find_highest_peak(float* buffer, float* max_value){
+	//security condition to not have a too low value
+	if(max_value < MIN_VALUE_THRESHOLD){
+		max_value = MIN_VALUE_THRESHOLD;
+	}	
 
 	//search for the highest peak
-	for(uint16_t i = MIN_FREQ ; i <= MAX_FREQ ; i++){
-		if(data[i] > max_norm){
-			max_norm = data[i];
-			max_norm_index = i;
-		}
-	}
-
-	//go forward
-	if(max_norm_index >= FREQ_FORWARD_L && max_norm_index <= FREQ_FORWARD_H){
-		left_motor_set_speed(600);
-		right_motor_set_speed(600);
-	}
-	//turn left
-	else if(max_norm_index >= FREQ_LEFT_L && max_norm_index <= FREQ_LEFT_H){
-		left_motor_set_speed(-600);
-		right_motor_set_speed(600);
-	}
-	//turn right
-	else if(max_norm_index >= FREQ_RIGHT_L && max_norm_index <= FREQ_RIGHT_H){
-		left_motor_set_speed(600);
-		right_motor_set_speed(-600);
-	}
-	//go backward
-	else if(max_norm_index >= FREQ_BACKWARD_L && max_norm_index <= FREQ_BACKWARD_H){
-		left_motor_set_speed(-600);
-		right_motor_set_speed(-600);
-	}
-	else{
-		left_motor_set_speed(0);
-		right_motor_set_speed(0);
+	for(uint16_t i = MIN_FREQ ; i <= MAX_FREQ ; i++){ //Band pass filter
+		if(buffer[i] > *max_value){
+			max_value = &buffer[i];
 	}
 }
 

@@ -16,6 +16,8 @@
 #include "communications.h"
 #include <gpt_lld.h>
 
+#include <sensors/proximity.h>
+
 //uncomment to send the FFTs results from the real microphones
 #define SEND_FROM_MIC
 
@@ -67,6 +69,8 @@ int main(void){
     // mic_start(&processAudioData);
     //inits the microphones processing thread
     audio_proces_start();
+
+    // proximity_start();
 
     //temp tab used to store values in complex_float format
     //needed bx doFFT_c
