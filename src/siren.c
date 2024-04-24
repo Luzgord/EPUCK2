@@ -5,23 +5,6 @@
 
 static bool fsiren = 1; //arbitrary value when starting siren
 
-//necessary?
-void panic_handler(const char *reason)
-{
-    (void)reason;
-
-    palClearPad(GPIOD, GPIOD_LED1);
-    palClearPad(GPIOD, GPIOD_LED3);
-    palClearPad(GPIOD, GPIOD_LED5);
-    palClearPad(GPIOD, GPIOD_LED7);
-    palClearPad(GPIOD, GPIOD_LED_FRONT);
-    palClearPad(GPIOB, GPIOB_LED_BODY);
-    
-    while (true) {
-
-    }
-}
-
 static THD_WORKING_AREA(waSiren, 128);
 static THD_FUNCTION(ThdSiren, arg) {
 
@@ -42,9 +25,9 @@ static THD_FUNCTION(ThdSiren, arg) {
 		toggle_rgb_led(LED8, RED_LED, RGB_MAX_INTENSITY);
 
         if(fsiren == false) { //how to reduce intensity of sound?
-			dac_play(705);
+			dac_play(600);
 		} else {
-			dac_play(933);
+			dac_play(900);
 		}
 
 		chThdSleepMilliseconds(500);
