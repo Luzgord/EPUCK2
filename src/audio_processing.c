@@ -67,7 +67,7 @@ static THD_FUNCTION(AudioProcessingThread, arg) {
 		
 // 		     #Front#  
 // 		    # Q1|Q2 # 
-// 	  Left #---------# Right
+// 	  Left #---------# R babab ight
 // 		    # Q3|Q4 #
 //  		 #Back# 
 //   		 
