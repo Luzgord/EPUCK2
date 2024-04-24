@@ -14,12 +14,15 @@
 #include "audio_processing.h"
 #include "fft.h"
 #include "communications.h"
+#include <gpt_lld.h>
+
+#include <sensors/proximity.h>
 
 //uncomment to send the FFTs results from the real microphones
-//#define SEND_FROM_MIC
+#define SEND_FROM_MIC
 
 //uncomment to use double buffering to send the FFT to the computer
-#define DOUBLE_BUFFERING
+// #define DOUBLE_BUFFERING
 
 static void serial_start(void){
 	static SerialConfig ser_cfg = {
@@ -62,6 +65,12 @@ int main(void){
     timer12_start();
     //inits the motors
     motors_init();
+    //inits the microphones
+    // mic_start(&processAudioData);
+    //inits the microphones processing thread
+    audio_proces_start();
+
+    // proximity_start();
 
     //temp tab used to store values in complex_float format
     //needed bx doFFT_c
@@ -73,7 +82,7 @@ int main(void){
 #ifdef SEND_FROM_MIC
     //starts the microphones processing thread.
     //it calls the callback given in parameter when samples are ready
-    mic_start(&processAudioData);
+    mic_start(&processAudioData);  
 #endif  /* SEND_FROM_MIC */
 
     /* Infinite loop. */

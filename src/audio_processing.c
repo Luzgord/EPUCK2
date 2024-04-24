@@ -25,7 +25,7 @@ static float micRight_output[FFT_SIZE];
 static float micFront_output[FFT_SIZE];
 static float micBack_output[FFT_SIZE];
 
-#define MIN_VALUE_THRESHOLD	10000 
+#define MIN_VALUE_THRESHOLD	10000 //minimum value to detect a peak
 
 #define MIN_FREQ		10	//we don't analyze before this index to not use resources for nothing
 #define FREQ_FORWARD	16	//250Hz
@@ -43,45 +43,76 @@ static float micBack_output[FFT_SIZE];
 #define FREQ_BACKWARD_L		(FREQ_BACKWARD-1)
 #define FREQ_BACKWARD_H		(FREQ_BACKWARD+1)
 
+static QUADRANT_NAME_t quadrant_status = QUADRANT_0;
+// Taille badasse Ok?
+static THD_WORKING_AREA(waAudioProcessingThread, 128);  
+static THD_FUNCTION(AudioProcessingThread, arg) {
+	
+	chRegSetThreadName(__FUNCTION__);
+	(void)arg;
+
+	float maxFront_intensity = MIN_VALUE_THRESHOLD; // FFT: 0-512 frequences positives croissantes, 513-1023 frequences negatives decroissantes
+	float maxBack_intensity = MIN_VALUE_THRESHOLD;
+	float maxRight_intensity = MIN_VALUE_THRESHOLD;
+	float maxLeft_intensity = MIN_VALUE_THRESHOLD;
+	float *fft_ptr_index = NULL; // pointer to the current index of the FFT array
+		 
+	
+	while(1){
+		find_highest_peak(&micLeft_output, &maxLeft_intensity);
+		find_highest_peak(&micRight_output, &maxRight_intensity);
+		find_highest_peak(&micFront_output, &maxFront_intensity);
+		find_highest_peak(&micBack_output, &maxBack_intensity);
+		
+		
+// 		     #Front#  
+// 		    # Q1|Q2 # 
+// 	  Left #---------# Right
+// 		    # Q3|Q4 #
+//  		 #Back# 
+//   		 
+		// Search for the quadrant of the max intensity
+		if(*fft_ptr_maxFront_intensity - *fft_ptr_maxBack_intensity > 0){ //=> quadrant 1 ou 2 soit aller devant
+			if(*fft_ptr_maxRight_intensity - *fft_ptr_maxLeft_intensity < 0){
+				quadrant_status = QUADRANT_1;
+			}
+			else{
+				quadrant_status = QUADRANT_2;
+			}
+		}
+		else{ //=> quadrant 3 ou 4 soit aller derriere
+			if(*fft_ptr_maxRight_intensity - *fft_ptr_maxLeft_intensity > 0){
+				quadrant_status = QUADRANT_4;
+			}
+			else{
+				quadrant_status = QUADRANT_3;
+			}
+		}
+		//send the quadrant to the computer
+		send_quadrant_to_computer(quadrant_status);
+
+		}
+}
+
+
+void send_quadrant_to_computer(QUADRANT_NAME_t name){
+	chprintf((BaseSequentialStream *)&SDU1, "Quadrant : %d\n", name);
+}
+
 /*
 *	Simple function used to detect the highest value in a buffer
 *	and to execute a motor command depending on it
 */
-void sound_remote(float* data){
-	float max_norm = MIN_VALUE_THRESHOLD;
-	int16_t max_norm_index = -1; 
+void find_highest_peak(float* buffer, float* max_value){
+	//security condition to not have a too low value
+	if(max_value < MIN_VALUE_THRESHOLD){
+		max_value = MIN_VALUE_THRESHOLD;
+	}	
 
 	//search for the highest peak
-	for(uint16_t i = MIN_FREQ ; i <= MAX_FREQ ; i++){
-		if(data[i] > max_norm){
-			max_norm = data[i];
-			max_norm_index = i;
-		}
-	}
-
-	//go forward
-	if(max_norm_index >= FREQ_FORWARD_L && max_norm_index <= FREQ_FORWARD_H){
-		left_motor_set_speed(600);
-		right_motor_set_speed(600);
-	}
-	//turn left
-	else if(max_norm_index >= FREQ_LEFT_L && max_norm_index <= FREQ_LEFT_H){
-		left_motor_set_speed(-600);
-		right_motor_set_speed(600);
-	}
-	//turn right
-	else if(max_norm_index >= FREQ_RIGHT_L && max_norm_index <= FREQ_RIGHT_H){
-		left_motor_set_speed(600);
-		right_motor_set_speed(-600);
-	}
-	//go backward
-	else if(max_norm_index >= FREQ_BACKWARD_L && max_norm_index <= FREQ_BACKWARD_H){
-		left_motor_set_speed(-600);
-		right_motor_set_speed(-600);
-	}
-	else{
-		left_motor_set_speed(0);
-		right_motor_set_speed(0);
+	for(uint16_t i = MIN_FREQ ; i <= MAX_FREQ ; i++){ //Band pass filter
+		if(buffer[i] > *max_value){
+			max_value = &buffer[i];
 	}
 } 
 
@@ -200,4 +231,8 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 	else{
 		return NULL;
 	}
+}
+
+void audio_proces_start(void){
+    chThdCreateStatic(waAudioProcessingThread, sizeof(waAudioProcessingThread), NORMALPRIO, AudioProcessingThread, NULL);
 }

@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib
-matplotlib.use('TkAgg')
+# matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons
 import serial
@@ -45,7 +45,7 @@ goodbye2 = """
 
 #constants to compute the sinus
 A = 1000    # amplitude
-n = 1024    # nb of samples
+n = 512    # nb of samples
 fs = 300    # sampling frequency
 f0 = 5      # default sinus frequency
 
