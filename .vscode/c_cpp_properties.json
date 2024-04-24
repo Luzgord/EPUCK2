@@ -2,13 +2,11 @@
     "configurations": [
         {
             "name": "EPUCK2 ARM C",
-            "forcedInclude": ["${config:workplace}//EPuck2_Workplace//Lib//e-puck2_main-processor//ChibiOS//os//ext//CMSIS//ST//stm32f407xx.h"],
+            "forcedInclude": [
+                "${config:workplace}//EPuck2_Workplace//Lib//e-puck2_main-processor//ChibiOS//os//ext//CMSIS//ST//stm32f407xx.h"
+            ],
             "includePath": [
                 "${config:gcc_arm_path}//lib//gcc//arm-none-eabi//7.2.1//include//",
-                // ToDo : Check but for me the src project folder must not be added. Must be test - Dany
-                // I guess it is safer to have the src included just in case - Antoine
-                // It is really not necessary - Dany
-                // "${workspaceFolder}//src//",
                 "${config:workplace}//EPuck2_Workplace//Lib//e-puck2_main-processor//src//",
                 "${config:workplace}//EPuck2_Workplace//Lib//e-puck2_main-processor//src//msgbus//",
                 "${config:workplace}//EPuck2_Workplace//Lib//e-puck2_main-processor//ChibiOS//os//common//ports//ARMCMx//devices//STM32F4xx//",
@@ -34,7 +32,8 @@
                 "${config:workplace}//EPuck2_Workplace//Lib//e-puck2_main-processor//ChibiOS//os//hal//ports//STM32//LLD//",
                 "${config:workplace}//EPuck2_Workplace//Lib//e-puck2_main-processor//ChibiOS_ext//os//hal//boards//epuck2//",
                 "${config:workplace}//EPuck2_Workplace//Lib//e-puck2_main-processor//ChibiOS_ext//os//hal//include//",
-                "${config:workplace}//EPuck2_Workplace//Lib//e-puck2_main-processor//ChibiOS_ext//ext//CMSIS//Include//"
+                "${config:workplace}//EPuck2_Workplace//Lib//e-puck2_main-processor//ChibiOS_ext//ext//CMSIS//Include//",
+                "C:/Users/maxim/Documents/EPuck2_Workplace/Lib/e-puck2_main-processor/aseba"
             ],
             "defines": [
                 "HAL_USE_PAL",

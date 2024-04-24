@@ -8,6 +8,12 @@
     //      -> "com_port": "/dev/cu.usbmodemEPUCKx"
     "com_port": "\\\\.\\COM4",
     "files.associations": {
-        "hal.h": "c"
+        "hal.h": "c",
+        "ch.h": "c",
+        "leds.h": "c",
+        "gpt_lld.h": "c",
+        "arm_math.h": "c",
+        "audio_thread.h": "c",
+        "string.h": "c"
     }
 }

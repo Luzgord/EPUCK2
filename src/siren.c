@@ -1,18 +1,28 @@
-#include <ch.h>
-#include <hal.h>
+#include "ch.h"
+#include "hal.h"
+#include <usbcfg.h>
+#include <chprintf.h>
+
+#include <audio/audio_thread.h>
+#include <spi_comm.h> //Leds work even without that
+#include <leds.h>
 #include "siren.h"
-#include "leds.h"
 
 static bool fsiren = 1; //arbitrary value when starting siren
 
-static THD_WORKING_AREA(waSiren, 128);
+void start_siren(void) {
+    chThdCreateStatic(waSiren, sizeof(waSiren), NORMALPRIO, ThdSiren, NULL);
+}
+
+static THD_WORKING_AREA(waSiren, 256);
 static THD_FUNCTION(ThdSiren, arg) {
 
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
 
-    set_rgb_led(LED4, 0, 0, RGB_MAX_INTENSITY); //blue leds first
-	set_rgb_led(LED8, 0, 0, RGB_MAX_INTENSITY);
+	set_rgb_led(LED2, RGB_MAX_INTENSITY, 0, 0); //blue leds first
+    set_rgb_led(LED4,  RGB_MAX_INTENSITY, 0, 0); //blue leds first
+	set_rgb_led(LED8, RGB_MAX_INTENSITY, 0, 0);
 
     while(1) {
         fsiren =! fsiren; //invert value
@@ -34,6 +44,3 @@ static THD_FUNCTION(ThdSiren, arg) {
 	}
 }
 
-void siren_start(void) {
-    chThdCreateStatic(waSiren, sizeof(waSiren), NORMALPRIO, ThdSiren, NULL);
-}

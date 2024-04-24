@@ -55,14 +55,14 @@ static THD_FUNCTION(AudioProcessingThread, arg) {
 	float maxBack_intensity = MIN_VALUE_THRESHOLD;
 	float maxRight_intensity = MIN_VALUE_THRESHOLD;
 	float maxLeft_intensity = MIN_VALUE_THRESHOLD;
-	float *fft_ptr_index = NULL; // pointer to the current index of the FFT array
+	// float* fft_ptr_index = NULL; // pointer to the current index of the FFT array
 		 
 	
 	while(1){
-		find_highest_peak(&micLeft_output, &maxLeft_intensity);
-		find_highest_peak(&micRight_output, &maxRight_intensity);
-		find_highest_peak(&micFront_output, &maxFront_intensity);
-		find_highest_peak(&micBack_output, &maxBack_intensity);
+		find_highest_peak(micLeft_output, &maxLeft_intensity);
+		find_highest_peak(micRight_output, &maxRight_intensity);
+		find_highest_peak(micFront_output, &maxFront_intensity);
+		find_highest_peak(micBack_output, &maxBack_intensity);
 		
 		
 // 		     #Front#  
@@ -72,8 +72,8 @@ static THD_FUNCTION(AudioProcessingThread, arg) {
 //  		 #Back# 
 //   		 
 		// Search for the quadrant of the max intensity
-		if(*fft_ptr_maxFront_intensity - *fft_ptr_maxBack_intensity > 0){ //=> quadrant 1 ou 2 soit aller devant
-			if(*fft_ptr_maxRight_intensity - *fft_ptr_maxLeft_intensity < 0){
+		if(maxFront_intensity - maxBack_intensity > 0){ //=> quadrant 1 ou 2 soit aller devant
+			if(maxRight_intensity - maxLeft_intensity < 0){
 				quadrant_status = QUADRANT_1;
 			}
 			else{
@@ -81,7 +81,7 @@ static THD_FUNCTION(AudioProcessingThread, arg) {
 			}
 		}
 		else{ //=> quadrant 3 ou 4 soit aller derriere
-			if(*fft_ptr_maxRight_intensity - *fft_ptr_maxLeft_intensity > 0){
+			if(maxRight_intensity - maxLeft_intensity > 0){
 				quadrant_status = QUADRANT_4;
 			}
 			else{
@@ -105,16 +105,17 @@ void send_quadrant_to_computer(QUADRANT_NAME_t name){
 */
 void find_highest_peak(float* buffer, float* max_value){
 	//security condition to not have a too low value
-	if(max_value < MIN_VALUE_THRESHOLD){
-		max_value = MIN_VALUE_THRESHOLD;
+	if(*max_value < MIN_VALUE_THRESHOLD){
+		*max_value = MIN_VALUE_THRESHOLD;
 	}	
 
 	//search for the highest peak
 	for(uint16_t i = MIN_FREQ ; i <= MAX_FREQ ; i++){ //Band pass filter
 		if(buffer[i] > *max_value){
 			max_value = &buffer[i];
-	}
-} 
+		}
+	} 
+}
 
 /*
 *	Callback called when the demodulation of the four microphones is done.
@@ -195,7 +196,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		nb_samples = 0;
 		mustSend++;
 
-		sound_remote(micLeft_output);
+		// sound_remote(micLeft_output);
 	}
 }
 
