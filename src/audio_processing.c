@@ -114,7 +114,7 @@ void find_highest_peak(float* buffer, float* max_value){
 		if(buffer[i] > *max_value){
 			max_value = &buffer[i];
 	}
-}
+} 
 
 /*
 *	Callback called when the demodulation of the four microphones is done.
