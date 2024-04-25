@@ -10,9 +10,6 @@
 
 static bool fsiren = 1; //arbitrary value when starting siren
 
-void start_siren(void) {
-    chThdCreateStatic(waSiren, sizeof(waSiren), NORMALPRIO, ThdSiren, NULL);
-}
 
 static THD_WORKING_AREA(waSiren, 256);
 static THD_FUNCTION(ThdSiren, arg) {
@@ -44,3 +41,6 @@ static THD_FUNCTION(ThdSiren, arg) {
 	}
 }
 
+void start_siren(void) {
+    chThdCreateStatic(waSiren, sizeof(waSiren), NORMALPRIO, ThdSiren, NULL);
+}

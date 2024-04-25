@@ -26,7 +26,7 @@ typedef enum {
 	QUADRANT_4
 } QUADRANT_NAME_t;
 
-void audio_proces_start(void);
+// void audio_proces_start(void);
 
 void processAudioData(int16_t *data, uint16_t num_samples);
 

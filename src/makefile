@@ -12,8 +12,8 @@ GLOBAL_PATH = ../e-puck2_main-processor
 CSRC += ./main.c \
 		./audio_processing.c \
 		./communications.c \
-		./fft.c \
-		./leds.c \
+		./fft.c 
+		
 
 #Header folders to include
 INCDIR += 

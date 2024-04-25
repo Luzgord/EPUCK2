@@ -10,11 +10,13 @@
 #include <audio/microphone.h>
 #include <arm_math.h>
 #include <spi_comm.h>
+#include <leds.h>
 
 #include "main.h"
 #include "audio_processing.h"
 #include "fft.h"
 #include "communications.h"
+#include "siren.h"
 
 static void serial_start(void){
 	static SerialConfig ser_cfg = {
@@ -60,11 +62,13 @@ int main(void) {
     //starts the microphones processing thread.
     mic_start(&processAudioData);
 
+    // start_siren();
+
     //starts the motors thread.
-    motors_init();
+    //motors_init();
 
     //starts the communication thread.
-    comms_start();
+    // comms_start();
 
     //infinite loop
     while (1) {
