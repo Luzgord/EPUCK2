@@ -45,24 +45,30 @@ static float micBack_output[FFT_SIZE];
 
 static QUADRANT_NAME_t quadrant_status = QUADRANT_0;
 // Taille badasse Ok?
-static THD_WORKING_AREA(waAudioProcessingThread, 128);  
-static THD_FUNCTION(AudioProcessingThread, arg) {
+// static THD_WORKING_AREA(waAudioProcessingThread, 128);  
+// static THD_FUNCTION(AudioProcessingThread, arg) {
 	
-	chRegSetThreadName(__FUNCTION__);
-	(void)arg;
+// 	chRegSetThreadName(__FUNCTION__);
+// 	(void)arg;
 
-	float maxFront_intensity = MIN_VALUE_THRESHOLD; // FFT: 0-512 frequences positives croissantes, 513-1023 frequences negatives decroissantes
-	float maxBack_intensity = MIN_VALUE_THRESHOLD;
-	float maxRight_intensity = MIN_VALUE_THRESHOLD;
-	float maxLeft_intensity = MIN_VALUE_THRESHOLD;
-	float *fft_ptr_index = NULL; // pointer to the current index of the FFT array
+void find_direction(void){
+	 // FFT: 0-512 frequences positives croissantes, 513-1023 frequences negatives decroissantes
+	float avgFront_intensity_val = 0;
+	float avgBack_intensity_val = 0; 
+	float avgRight_intensity_val = 0;
+	float avgLeft_intensity_val = 0; 
+
+	float *avg_ptr_Front_intensity = &avgFront_intensity_val;
+	float *avg_ptr_Back_intensity = &avgBack_intensity_val ;
+	float *avg_ptr_Right_intensity = &avgRight_intensity_val;
+	float *avg_ptr_Left_intensity = &avgLeft_intensity_val ;
+	// float* fft_ptr_index = NULL; // pointer to the current index of the FFT array
 		 
 	
-	while(1){
-		find_highest_peak(&micLeft_output, &maxLeft_intensity);
-		find_highest_peak(&micRight_output, &maxRight_intensity);
-		find_highest_peak(&micFront_output, &maxFront_intensity);
-		find_highest_peak(&micBack_output, &maxBack_intensity);
+	calculate_average_intensity(micLeft_output, avg_ptr_Left_intensity);
+	calculate_average_intensity(micRight_output,avg_ptr_Right_intensity);
+	calculate_average_intensity(micFront_output,avg_ptr_Front_intensity);
+	calculate_average_intensity(micBack_output, avg_ptr_Back_intensity);
 		
 		
 // 		     #Front#  
@@ -72,50 +78,58 @@ static THD_FUNCTION(AudioProcessingThread, arg) {
 //  		 #Back# 
 //   		 
 		// Search for the quadrant of the max intensity
-		if(maxFront_intensity - maxBack_intensity > 0){ //=> quadrant 1 ou 2 soit aller devant
-			if(maxRight_intensity - maxLeft_intensity < 0){
-				quadrant_status = QUADRANT_1;
-			}
-			else{
-				quadrant_status = QUADRANT_2;
-			}
+	if(*avg_ptr_Front_intensity - *avg_ptr_Back_intensity > 0){ //=> quadrant 1 ou 2 soit aller devant
+		if(*avg_ptr_Right_intensity - *avg_ptr_Left_intensity < 0){
+			quadrant_status = QUADRANT_1;
 		}
-		else{ //=> quadrant 3 ou 4 soit aller derriere
-			if(maxRight_intensity - maxLeft_intensity > 0){
-				quadrant_status = QUADRANT_4;
-			}
-			else{
-				quadrant_status = QUADRANT_3;
-			}
+		else{
+			quadrant_status = QUADRANT_2;
 		}
-		//send the quadrant to the computer
-		send_quadrant_to_computer(quadrant_status);
-
+	}
+	else{ //=> quadrant 3 ou 4 soit aller derriere
+		if(*avg_ptr_Right_intensity - *avg_ptr_Left_intensity > 0){
+			quadrant_status = QUADRANT_4;
 		}
+		else{
+			quadrant_status = QUADRANT_3;
+		}
+	}
+	//send the quadrant to the computer
+	send_quadrant_to_computer(quadrant_status);
 }
 
 
 void send_quadrant_to_computer(QUADRANT_NAME_t name){
-	chprintf((BaseSequentialStream *)&SDU1, "Quadrant : %d\n", name);
+	chprintf((BaseSequentialStream *)&SD3, "Quadrant : %d\n", name);
 }
 
 /*
 *	Simple function used to detect the highest value in a buffer
 *	and to execute a motor command depending on it
 */
-void find_highest_peak(float* buffer, float* max_value){
-	//security condition to not have a too low value
-	if(max_value < MIN_VALUE_THRESHOLD){
-		max_value = MIN_VALUE_THRESHOLD;
-	}	
+// void find_highest_peak(float* buffer, float* max_value){
+// 	//security condition to not have a too low value
+// 	if(*max_value < MIN_VALUE_THRESHOLD){
+// 		*max_value = MIN_VALUE_THRESHOLD;
+// 	}	
 
+// 	//search for the highest peak
+// 	for(uint16_t i = MIN_FREQ ; i <= MAX_FREQ ; i++){ //Band pass filter
+// 		if(buffer[i] > *max_value){
+// 			max_value = &buffer[i];
+// 		}
+// 	} 
+// }
+
+void calculate_average_intensity(float* buffer, float* average_value){
+	
 	//search for the highest peak
 	for(uint16_t i = MIN_FREQ ; i <= MAX_FREQ ; i++){ //Band pass filter
-		if(buffer[i] > *max_value){
-			max_value = &buffer[i];
-		}
-	}
-} 
+		*average_value += buffer[i];
+	} 
+	*average_value = *average_value / (MAX_FREQ - MIN_FREQ);
+}
+
 
 /*
 *	Callback called when the demodulation of the four microphones is done.
@@ -188,15 +202,12 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 
 		//sends only one FFT result over 10 for 1 mic to not flood the computer
 		//sends to UART3
-		if(mustSend > 8){
-			//signals to send the result to the computer
-			chBSemSignal(&sendToComputer_sem);
-			mustSend = 0;
-		}
-		nb_samples = 0;
-		mustSend++;
 
-		sound_remote(micLeft_output);
+		nb_samples = 0;
+
+
+		//sound_remote(micLeft_output);
+		find_direction();
 	}
 }
 
@@ -234,6 +245,6 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 	}
 }
 
-void audio_proces_start(void){
-    chThdCreateStatic(waAudioProcessingThread, sizeof(waAudioProcessingThread), NORMALPRIO, AudioProcessingThread, NULL);
-}
+// void audio_proces_start(void){
+//     chThdCreateStatic(waAudioProcessingThread, sizeof(waAudioProcessingThread), NORMALPRIO, AudioProcessingThread, NULL);
+// }

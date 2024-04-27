@@ -26,7 +26,7 @@ typedef enum {
 	QUADRANT_4
 } QUADRANT_NAME_t;
 
-void audio_proces_start(void);
+// void audio_proces_start(void);
 
 void processAudioData(int16_t *data, uint16_t num_samples);
 
@@ -40,7 +40,7 @@ void wait_send_to_computer(void);
 */
 float* get_audio_buffer_ptr(BUFFER_NAME_t name);
 
-void find_highest_peak(float* buffer, float* max_value);
+void find_highest_peak(float *buffer, float *max_value);
 
 void send_quadrant_to_computer(QUADRANT_NAME_t name);
 
