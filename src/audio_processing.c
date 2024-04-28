@@ -44,6 +44,7 @@ static float micBack_output[FFT_SIZE];
 #define FREQ_BACKWARD_H		(FREQ_BACKWARD+1)
 
 static QUADRANT_NAME_t quadrant_status = QUADRANT_0;
+static float diff_intensity_avg_left_right = 0;
 // Taille badasse Ok?
 // static THD_WORKING_AREA(waAudioProcessingThread, 128);  
 // static THD_FUNCTION(AudioProcessingThread, arg) {
@@ -70,7 +71,9 @@ void find_direction(void){
 	calculate_average_intensity(micRight_output,ptr_avg_right_intensity);
 	calculate_average_intensity(micFront_output,ptr_avg_front_intensity);
 	calculate_average_intensity(micBack_output, ptr_avg_back_intensity);
-		
+	
+	diff_intensity_avg_left_right = *ptr_avg_left_intensity - *ptr_avg_right_intensity;
+	
 		
 // 		     #Front#  
 // 		    # Q2|Q1 # 
@@ -79,6 +82,7 @@ void find_direction(void){
 //  		 #Back# 
 //   		 
 	// Search for the quadrant of the max intensity
+	
 	if(*ptr_avg_front_intensity - *ptr_avg_back_intensity > 0){ //-> quadrant 1 or 2 so go forward
 		if(*ptr_avg_right_intensity - *ptr_avg_left_intensity < 0){
 			quadrant_status = QUADRANT_2;
@@ -227,4 +231,8 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 	else{
 		return NULL;
 	}
+}
+
+float audio_get_diff_intensity(void){
+	return diff_intensity_avg_left_right;
 }

@@ -17,6 +17,7 @@
 #include "fft.h"
 #include "communications.h"
 #include "siren.h"
+#include "motor_driver.h"
 
 static void serial_start(void){
 	static SerialConfig ser_cfg = {
@@ -50,7 +51,8 @@ int main(void) {
     siren_start();
 
     //starts the motors thread
-    //motors_init();
+    motors_init();
+    motor_regulator_start();
 
     //starts the communication thread
     // comms_start();
