@@ -97,11 +97,12 @@ void find_direction(void){
 		}
 	}
 	//send the quadrant to the computer
-	send_quadrant_to_computer(quadrant_status);
+	send_quadrant_to_computer(quadrant_status, avg_left_intensity, avg_right_intensity);
 }
 
-void send_quadrant_to_computer(QUADRANT_NAME_t name){
-	chprintf((BaseSequentialStream *)&SD3, "Quadrant : %d\n", name);
+void send_quadrant_to_computer(QUADRANT_NAME_t name, float avg_intensity_left, float  avg_intensity_right){
+    float diff = avg_intensity_left - avg_intensity_right;
+    chprintf((BaseSequentialStream *)&SD3, "Quadrant : %d, Left Micro Intensity : %f, Right Micro Intensity : %f, Intensity Difference : %f\n", name, avg_intensity_left, avg_intensity_right, diff);
 }
 
 void calculate_average_intensity(float* buffer, float* average_value){

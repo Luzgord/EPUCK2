@@ -29,13 +29,13 @@ static THD_FUNCTION(ThdSiren, arg) {
 		toggle_rgb_led(LED6, BLUE_LED, RGB_MAX_INTENSITY);
 		toggle_rgb_led(LED8, RED_LED, RGB_MAX_INTENSITY);
 
-		if (fsiren == false) {
-			dac_stop();
-			dac_play(100);
-		} else {
-			dac_stop();
-			dac_play(150);
-		}
+		// if (fsiren == false) {
+		// 	dac_stop();
+		// 	dac_play(100);
+		// } else {
+		// 	dac_stop();
+		// 	dac_play(150);
+		// }
 
 		chThdSleepMilliseconds(500);
 	}

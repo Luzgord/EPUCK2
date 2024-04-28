@@ -42,7 +42,9 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name);
 
 void find_highest_peak(float *buffer, float *max_value);
 
-void send_quadrant_to_computer(QUADRANT_NAME_t name);
+void send_quadrant_to_computer(QUADRANT_NAME_t name, 
+							float avg_intensity_left, 
+							float  avg_intensity_right);
 
 void calculate_average_intensity(float* buffer, float* average_value);
 
