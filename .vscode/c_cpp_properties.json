@@ -33,7 +33,9 @@
                 "${config:workplace}//EPuck2_Workplace//Lib//e-puck2_main-processor//ChibiOS_ext//os//hal//boards//epuck2//",
                 "${config:workplace}//EPuck2_Workplace//Lib//e-puck2_main-processor//ChibiOS_ext//os//hal//include//",
                 "${config:workplace}//EPuck2_Workplace//Lib//e-puck2_main-processor//ChibiOS_ext//ext//CMSIS//Include//",
-                "C:/Users/maxim/Documents/EPuck2_Workplace/Lib/e-puck2_main-processor/aseba"
+                "C:/Users/maxim/Documents/EPuck2_Workplace/Lib/e-puck2_main-processor/aseba",
+                "${workspaceFolder}",
+                "${workspaceFolder}/src"
             ],
             "defines": [
                 "HAL_USE_PAL",

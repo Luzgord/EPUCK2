@@ -42,6 +42,8 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name);
 
 void find_highest_peak(float *buffer, float *max_value);
 
-void send_quadrant_to_computer(QUADRANT_NAME_t name);
+void send_quadrant_to_computer(QUADRANT_NAME_t name, float diff_intensity);
+
+float audio_get_diff_intensity(void);
 
 #endif /* AUDIO_PROCESSING_H */

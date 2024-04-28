@@ -17,6 +17,7 @@
 #include "fft.h"
 #include "communications.h"
 #include "siren.h"
+#include "pi_regulator.h"
 
 static void serial_start(void){
 	static SerialConfig ser_cfg = {
@@ -61,7 +62,7 @@ int main(void) {
 
     //starts the microphones processing thread.
     mic_start(&processAudioData);
-
+    pi_regulator_start();
     start_siren();
 
     //starts the motors thread.

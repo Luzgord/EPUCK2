@@ -44,6 +44,7 @@ static float micBack_output[FFT_SIZE];
 #define FREQ_BACKWARD_H		(FREQ_BACKWARD+1)
 
 static QUADRANT_NAME_t quadrant_status = QUADRANT_0;
+static float diff_intesity_avg_left_right = 0;
 // Taille badasse Ok?
 // static THD_WORKING_AREA(waAudioProcessingThread, 128);  
 // static THD_FUNCTION(AudioProcessingThread, arg) {
@@ -63,7 +64,6 @@ void find_direction(void){
 	float *avg_ptr_Right_intensity = &avgRight_intensity_val;
 	float *avg_ptr_Left_intensity = &avgLeft_intensity_val ;
 	// float* fft_ptr_index = NULL; // pointer to the current index of the FFT array
-		 
 	
 	calculate_average_intensity(micLeft_output, avg_ptr_Left_intensity);
 	calculate_average_intensity(micRight_output,avg_ptr_Right_intensity);
@@ -77,6 +77,9 @@ void find_direction(void){
 // 		    # Q3|Q4 #
 //  		 #Back# 
 //   		 
+
+diff_intesity_avg_left_right = *avg_ptr_Right_intensity - *avg_ptr_Left_intensity;
+
 		// Search for the quadrant of the max intensity
 	if(*avg_ptr_Front_intensity - *avg_ptr_Back_intensity > 0){ //=> quadrant 1 ou 2 soit aller devant
 		if(*avg_ptr_Right_intensity - *avg_ptr_Left_intensity < 0){
@@ -95,14 +98,13 @@ void find_direction(void){
 		}
 	}
 	//send the quadrant to the computer
-	send_quadrant_to_computer(quadrant_status);
+	send_quadrant_to_computer(quadrant_status, diff_intesity_avg_left_right);
 }
 
 
-void send_quadrant_to_computer(QUADRANT_NAME_t name){
-	chprintf((BaseSequentialStream *)&SD3, "Quadrant : %d\n", name);
+void send_quadrant_to_computer(QUADRANT_NAME_t name, float diff_intensity){
+    chprintf((BaseSequentialStream *)&SD3, "Quadrant : %d, Diff_intensity : %f\n", name, diff_intensity);
 }
-
 /*
 *	Simple function used to detect the highest value in a buffer
 *	and to execute a motor command depending on it
@@ -127,7 +129,7 @@ void calculate_average_intensity(float* buffer, float* average_value){
 	for(uint16_t i = MIN_FREQ ; i <= MAX_FREQ ; i++){ //Band pass filter
 		*average_value += buffer[i];
 	} 
-	*average_value = *average_value / (MAX_FREQ - MIN_FREQ);
+	*average_value = *average_value / (float)(MAX_FREQ - MIN_FREQ);
 }
 
 
@@ -151,7 +153,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 	*/
 
 	static uint16_t nb_samples = 0;
-	static uint8_t mustSend = 0;
+	// static uint8_t mustSend = 0;
 
 	//loop to fill the buffers
 	for(uint16_t i = 0 ; i < num_samples ; i+=4){
@@ -245,6 +247,6 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 	}
 }
 
-// void audio_proces_start(void){
-//     chThdCreateStatic(waAudioProcessingThread, sizeof(waAudioProcessingThread), NORMALPRIO, AudioProcessingThread, NULL);
+// float audio_get_diff_intensity(void){
+// 	return diff_intesity_avg_left_right;
 // }
