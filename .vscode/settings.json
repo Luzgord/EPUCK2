@@ -14,6 +14,7 @@
         "gpt_lld.h": "c",
         "arm_math.h": "c",
         "audio_thread.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "audio_processing.h": "c"
     }
 }

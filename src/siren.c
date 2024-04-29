@@ -1,14 +1,12 @@
 #include "ch.h"
 #include "hal.h"
+#include "siren.h"
 #include <usbcfg.h>
 #include <chprintf.h>
-
 #include <audio/audio_thread.h>
-#include <spi_comm.h> //Leds work even without that
 #include <leds.h>
-#include "siren.h"
 
-static bool fsiren = true; //arbitrary value when starting siren
+static bool fsiren = 1;
 
 
 static THD_WORKING_AREA(waSiren, 256);
@@ -18,13 +16,13 @@ static THD_FUNCTION(ThdSiren, arg) {
     (void)arg;
 
 	set_rgb_led(LED2, 0, 0, RGB_MAX_INTENSITY); //blue leds first
-    //set_rgb_led(LED4,  0, 0, RGB_MAX_INTENSITY); //blue leds first
-	set_rgb_led(LED6,  0, 0, RGB_MAX_INTENSITY); //blue leds first
-	//set_rgb_led(LED8, 0, 0, RGB_MAX_INTENSITY);
-	dac_start(); //stop first frequency then play next one
+	set_rgb_led(LED6,  0, 0, RGB_MAX_INTENSITY);
+	dac_start(); //activating the dac
 
     while(1) {
-        fsiren =! fsiren; //invert value
+        fsiren =! fsiren; //to change pitch of the siren
+
+		//toggling the LEDS in an X pattern
 
 		toggle_rgb_led(LED2, BLUE_LED, RGB_MAX_INTENSITY);
 		toggle_rgb_led(LED4, RED_LED, RGB_MAX_INTENSITY);
@@ -43,6 +41,6 @@ static THD_FUNCTION(ThdSiren, arg) {
 	}
 }
 
-void start_siren(void) {
+void siren_start(void) {
     chThdCreateStatic(waSiren, sizeof(waSiren), NORMALPRIO, ThdSiren, NULL);
 }

@@ -44,7 +44,7 @@ static float micBack_output[FFT_SIZE];
 #define FREQ_BACKWARD_H		(FREQ_BACKWARD+1)
 
 static QUADRANT_NAME_t quadrant_status = QUADRANT_0;
-static float diff_intesity_avg_left_right = 0;
+static float diff_intensity_avg_left_right = 0;
 // Taille badasse Ok?
 // static THD_WORKING_AREA(waAudioProcessingThread, 128);  
 // static THD_FUNCTION(AudioProcessingThread, arg) {
@@ -53,44 +53,47 @@ static float diff_intesity_avg_left_right = 0;
 // 	(void)arg;
 
 void find_direction(void){
-	 // FFT: 0-512 frequences positives croissantes, 513-1023 frequences negatives decroissantes
-	float avgFront_intensity_val = 0;
-	float avgBack_intensity_val = 0; 
-	float avgRight_intensity_val = 0;
-	float avgLeft_intensity_val = 0; 
+	//FFT: 0-512 increasing positive frequencies,
+	//513-1023 decreasing negative frequencies
+	float avg_front_intensity = 0;
+	float avg_back_intensity = 0; 
+	float avg_right_intensity = 0;
+	float avg_left_intensity = 0; 
 
-	float *avg_ptr_Front_intensity = &avgFront_intensity_val;
-	float *avg_ptr_Back_intensity = &avgBack_intensity_val ;
-	float *avg_ptr_Right_intensity = &avgRight_intensity_val;
-	float *avg_ptr_Left_intensity = &avgLeft_intensity_val ;
+	float *ptr_avg_front_intensity = &avg_front_intensity;
+	float *ptr_avg_back_intensity = &avg_back_intensity ;
+	float *ptr_avg_right_intensity = &avg_right_intensity;
+	float *ptr_avg_left_intensity = &avg_left_intensity ;
 	// float* fft_ptr_index = NULL; // pointer to the current index of the FFT array
+		 
 	
-	calculate_average_intensity(micLeft_output, avg_ptr_Left_intensity);
-	calculate_average_intensity(micRight_output,avg_ptr_Right_intensity);
-	calculate_average_intensity(micFront_output,avg_ptr_Front_intensity);
-	calculate_average_intensity(micBack_output, avg_ptr_Back_intensity);
-		
+	calculate_average_intensity(micLeft_output, ptr_avg_left_intensity);
+	calculate_average_intensity(micRight_output,ptr_avg_right_intensity);
+	calculate_average_intensity(micFront_output,ptr_avg_front_intensity);
+	calculate_average_intensity(micBack_output, ptr_avg_back_intensity);
+	
+	diff_intensity_avg_left_right = *ptr_avg_left_intensity - *ptr_avg_right_intensity;
+	
 		
 // 		     #Front#  
-// 		    # Q1|Q2 # 
+// 		    # Q2|Q1 # 
 // 	  Left #---------# Right
 // 		    # Q3|Q4 #
 //  		 #Back# 
 //   		 
-
-diff_intesity_avg_left_right = *avg_ptr_Right_intensity - *avg_ptr_Left_intensity;
-
-		// Search for the quadrant of the max intensity
-	if(*avg_ptr_Front_intensity - *avg_ptr_Back_intensity > 0){ //=> quadrant 1 ou 2 soit aller devant
-		if(*avg_ptr_Right_intensity - *avg_ptr_Left_intensity < 0){
-			quadrant_status = QUADRANT_1;
-		}
-		else{
+	// Search for the quadrant of the max intensity
+	
+	if(*ptr_avg_front_intensity - *ptr_avg_back_intensity > 0){ //-> quadrant 1 or 2 so go forward
+		if(*ptr_avg_right_intensity - *ptr_avg_left_intensity < 0){
 			quadrant_status = QUADRANT_2;
 		}
+		else{
+			quadrant_status = QUADRANT_1;
+		}
 	}
-	else{ //=> quadrant 3 ou 4 soit aller derriere
-		if(*avg_ptr_Right_intensity - *avg_ptr_Left_intensity > 0){
+	//-> quadrant 3 or 4 so go backward
+	else{
+		if(*ptr_avg_right_intensity - *ptr_avg_left_intensity > 0){
 			quadrant_status = QUADRANT_4;
 		}
 		else{
@@ -98,30 +101,13 @@ diff_intesity_avg_left_right = *avg_ptr_Right_intensity - *avg_ptr_Left_intensit
 		}
 	}
 	//send the quadrant to the computer
-	send_quadrant_to_computer(quadrant_status, diff_intesity_avg_left_right);
+	send_quadrant_to_computer(quadrant_status, avg_left_intensity, avg_right_intensity);
 }
 
-
-void send_quadrant_to_computer(QUADRANT_NAME_t name, float diff_intensity){
-    chprintf((BaseSequentialStream *)&SD3, "Quadrant : %d, Diff_intensity : %f\n", name, diff_intensity);
+void send_quadrant_to_computer(QUADRANT_NAME_t name, float avg_intensity_left, float  avg_intensity_right){
+    float diff = avg_intensity_left - avg_intensity_right;
+    chprintf((BaseSequentialStream *)&SD3, "Quadrant : %d, Left Micro Intensity : %f, Right Micro Intensity : %f, Intensity Difference : %f\n", name, avg_intensity_left, avg_intensity_right, diff);
 }
-/*
-*	Simple function used to detect the highest value in a buffer
-*	and to execute a motor command depending on it
-*/
-// void find_highest_peak(float* buffer, float* max_value){
-// 	//security condition to not have a too low value
-// 	if(*max_value < MIN_VALUE_THRESHOLD){
-// 		*max_value = MIN_VALUE_THRESHOLD;
-// 	}	
-
-// 	//search for the highest peak
-// 	for(uint16_t i = MIN_FREQ ; i <= MAX_FREQ ; i++){ //Band pass filter
-// 		if(buffer[i] > *max_value){
-// 			max_value = &buffer[i];
-// 		}
-// 	} 
-// }
 
 void calculate_average_intensity(float* buffer, float* average_value){
 	
@@ -142,6 +128,7 @@ void calculate_average_intensity(float* buffer, float* average_value){
 *							so we have [micRight1, micLeft1, micBack1, micFront1, micRight2, etc...]
 *	uint16_t num_samples	Tells how many data we get in total (should always be 640)
 */
+
 void processAudioData(int16_t *data, uint16_t num_samples){
 
 	/*
@@ -153,7 +140,6 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 	*/
 
 	static uint16_t nb_samples = 0;
-	// static uint8_t mustSend = 0;
 
 	//loop to fill the buffers
 	for(uint16_t i = 0 ; i < num_samples ; i+=4){
@@ -247,6 +233,6 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 	}
 }
 
-// float audio_get_diff_intensity(void){
-// 	return diff_intesity_avg_left_right;
-// }
+float audio_get_diff_intensity(void){
+	return diff_intensity_avg_left_right;
+}

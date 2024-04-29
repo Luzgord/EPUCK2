@@ -20,8 +20,8 @@ typedef enum {
 
 typedef enum {									
 	QUADRANT_0 = 0,
-	QUADRANT_1,						//			Q_0 = test_state					
-	QUADRANT_2,						//		Q_1		Q_2
+	QUADRANT_1,						//		Q_0 = base_state					
+	QUADRANT_2,						//		Q_2		Q_1
 	QUADRANT_3,						//		Q_3		Q_4
 	QUADRANT_4
 } QUADRANT_NAME_t;
@@ -42,8 +42,10 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name);
 
 void find_highest_peak(float *buffer, float *max_value);
 
-void send_quadrant_to_computer(QUADRANT_NAME_t name, float diff_intensity);
+void calculate_average_intensity(float* buffer, float* average_value);
 
 float audio_get_diff_intensity(void);
+
+void send_quadrant_to_computer(QUADRANT_NAME_t name, float avg_intensity_left, float  avg_intensity_right);
 
 #endif /* AUDIO_PROCESSING_H */

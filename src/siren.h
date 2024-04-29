@@ -1,6 +1,6 @@
 #ifndef SIREN_H
 #define SIREN_H
 
-void start_siren(void);
+void siren_start(void);
 
 #endif /* SIREN_H */

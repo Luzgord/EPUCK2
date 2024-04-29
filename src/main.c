@@ -17,7 +17,7 @@
 #include "fft.h"
 #include "communications.h"
 #include "siren.h"
-#include "pi_regulator.h"
+#include "motor_driver.h"
 
 static void serial_start(void){
 	static SerialConfig ser_cfg = {
@@ -30,23 +30,7 @@ static void serial_start(void){
 	sdStart(&SD3, &ser_cfg); // UART3.
 }
 
-// static void timer12_start(void){
-//     //General Purpose Timer configuration   
-//     //timer 12 is a 16 bit timer so we can measure time
-//     //to about 65ms with a 1Mhz counter
-//     static const GPTConfig gpt12cfg = {
-//         1000000,        /* 1MHz timer clock in order to measure uS.*/
-//         NULL,           /* Timer callback.*/
-//         0,
-//         0
-//     };
-
-//     gptStart(&GPTD12, &gpt12cfg);
-//     //let the timer count to max value
-//     gptStartContinuous(&GPTD12, 0xFFFF);
-// }s
-
-int main(void) {
+ int main(void) {
     halInit();
     chSysInit();
     mpu_init();
@@ -60,20 +44,20 @@ int main(void) {
     //inits the leds
     clear_leds();
 
-    //starts the microphones processing thread.
+    //starts the microphones processing thread
     mic_start(&processAudioData);
-    pi_regulator_start();
-    start_siren();
 
-    //starts the motors thread.
-    //motors_init();
+    //starts the siren thread
+    siren_start();
 
-    //starts the communication thread.
+    //starts the motors thread
+    motors_init();
+    motor_regulator_start();
+
+    //starts the communication thread
     // comms_start();
 
-    //infinite loop
     while (1) {
-        //waits 1s
         chThdSleepMilliseconds(1000);
     }
 

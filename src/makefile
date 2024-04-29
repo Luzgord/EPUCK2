@@ -14,7 +14,7 @@ CSRC += ./main.c \
 		./communications.c \
 		./fft.c \
 		./siren.c \
-		./pi_regulator.c 
+		./motor_driver.c
 		
 
 #Header folders to include
