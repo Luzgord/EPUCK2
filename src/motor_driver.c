@@ -81,8 +81,8 @@ static THD_FUNCTION(MotorRegulator, arg) {
 
 		if (enabled_motors){
 			//applies the speed from the PI regulator and the correction for the rotation
-			right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
-			left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
+			right_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
+			left_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
 		}
 		else {
 			//stop the motors
