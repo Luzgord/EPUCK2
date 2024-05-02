@@ -77,7 +77,7 @@ static THD_FUNCTION(MotorRegulator, arg) {
 		}
 
         //100Hz
-        chThdSleepUntilWindowed(time, time + MS2ST(5)); // 5ms OK ? avanr c'était 10 => 100Hz mais trop lent 
+        chThdSleepUntilWindowed(time, time + MS2ST(10)); // 5ms OK ? avanr c'était 10 => 100Hz mais trop lent 
     }
 }
 
