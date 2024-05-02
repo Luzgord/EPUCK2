@@ -28,20 +28,15 @@ void wall_detection(void){
 //simple P regulator implementation
 int16_t p_regulator(float intensity_gap){ //we want intensity_gap to be 0
 
-<<<<<<< HEAD
-	float current_error = intensity_gap;
-	float speed = 0;
-=======
 	float current_error = ecart_intensite;
 	float speed = 100;
->>>>>>> origin/Max_test
 
 	speed = KP * current_error;
 
     return (int16_t)speed;
 }
 
-static THD_WORKING_AREA(waMotorRegulator, 1024); // without printf -> put 256 
+static THD_WORKING_AREA(waMotorRegulator, 1024); // sans printf  remettre à 256 
 static THD_FUNCTION(MotorRegulator, arg) {
 
     chRegSetThreadName(__FUNCTION__);
@@ -54,25 +49,12 @@ static THD_FUNCTION(MotorRegulator, arg) {
     while(1){
         time = chVTGetSystemTime();
 		
-<<<<<<< HEAD
-		float diff_intensity_left_right = audio_get_diff_intensity_left_right();	
-		float diff_intensity_front_back = audio_get_diff_intensity_front_back();
-=======
 		float diff_intensity = audio_get_diff_intensity_front_right() - audio_get_diff_intensity_front_left();	
-
-		// chprintf((BaseSequentialStream *)&SDU1, "diff_intensity: %f\n", diff_intensity);
 		
->>>>>>> origin/Max_test
 		wall_detection();
 
-		while(diff_intensity_front_back < 0 ){
-			right_motor_set_speed(100);
-			left_motor_set_speed(-100);
-			diff_intensity_front_back = audio_get_diff_intensity_frsont_back();
-		}	
-
 		// High pass filter, avoid too low values of intensity difference
-		if(fabs(diff_intensity_left_right) < ERROR_THRESHOLD){
+		if(fabs(diff_intensity) < ERROR_THRESHOLD){
 			speed_correction = NO_CORRECTION;
 		}else{ 
 			speed_correction = p_regulator(diff_intensity_left_right);
