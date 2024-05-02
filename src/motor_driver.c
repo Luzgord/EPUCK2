@@ -26,7 +26,7 @@ void wall_detection(void){
 }
 
 //simple P regulator implementation
-int16_t p_regulator(float intensity_gap){ //we want intensity_gap to be 0
+int16_t p_regulator(float ecart_intensite){ //we want ecart_intensite to be 0 => goal = 0
 
 	float current_error = ecart_intensite;
 	float speed = 100;
@@ -57,7 +57,7 @@ static THD_FUNCTION(MotorRegulator, arg) {
 		if(fabs(diff_intensity) < ERROR_THRESHOLD){
 			speed_correction = NO_CORRECTION;
 		}else{ 
-			speed_correction = p_regulator(diff_intensity_left_right);
+			speed_correction = p_regulator(diff_intensity);
 		}
 
         // If the sound is nearly in front of the camera, don't rotate
@@ -66,12 +66,12 @@ static THD_FUNCTION(MotorRegulator, arg) {
         }
 
 		if (enabled_motors){
-			// applies the speed from the PI regulator and the correction for the rotation
+			//applies the speed from the PI regulator and the correction for the rotation
 			right_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
 			left_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
 		}
 		else {
-			// stop the motors
+			//stop the motors
 			right_motor_set_speed(0);
 			left_motor_set_speed(0);
 		}
