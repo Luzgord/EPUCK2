@@ -43,22 +43,20 @@ void find_direction(void){
 	float avg_left_intensity = 0; 
 
 	float *ptr_avg_front_intensity = &avg_front_intensity;
-	// float *ptr_avg_back_intensity = &avg_back_intensity ;
 	float *ptr_avg_right_intensity = &avg_right_intensity;
 	float *ptr_avg_left_intensity = &avg_left_intensity ;
 	
 	calculate_average_intensity(micLeft_output, ptr_avg_left_intensity);
 	calculate_average_intensity(micRight_output,ptr_avg_right_intensity);
 	calculate_average_intensity(micFront_output,ptr_avg_front_intensity);
-	// calculate_average_intensity(micBack_output, ptr_avg_back_intensity);
 	
 	diff_intensity_avg_front_left = *ptr_avg_front_intensity - *ptr_avg_left_intensity;
 	diff_intensity_avg_front_right = *ptr_avg_front_intensity - *ptr_avg_right_intensity;
 }
 
 void calculate_average_intensity(float* buffer, float* average_value){
-	
 	//search for the highest peak
+
 	for(uint16_t i = MIN_FREQ ; i <= MAX_FREQ ; i++){ //Band pass filter
 		*average_value += buffer[i];
 	} 
@@ -126,6 +124,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		*	stores them in a buffer of FFT_SIZE because it only contains
 		*	real numbers.
 		*/
+
 		arm_cmplx_mag_f32(micRight_cmplx_input, micRight_output, FFT_SIZE);
 		arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
 		arm_cmplx_mag_f32(micFront_cmplx_input, micFront_output, FFT_SIZE);
@@ -136,7 +135,7 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 
 		nb_samples = 0;
 
-		//sound_remote(micLeft_output);
+		//to find the direction of the sound
 		find_direction();
 	}
 }
@@ -175,6 +174,7 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 	}
 }
 
+//getters
 float audio_get_diff_intensity_front_left(void){
 	return diff_intensity_avg_front_left;
 }

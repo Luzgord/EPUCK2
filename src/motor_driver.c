@@ -5,30 +5,28 @@
 #include <chprintf.h>
 #include <motors.h>
 #include <sensors/proximity.h>
+#include <audio/audio_thread.h>
 
 #include "motor_driver.h"
 #include "main.h"
 #include "audio_processing.h"
 
 static bool enabled_motors = true;
-static bool wall_detected = false; 
 
-void wall_detection(void){
-	// int IR_L = get_prox(IR_FRONT_LEFT);
-	// int IR_R = get_prox(IR_FRONT_RIGHT);
-	// print_IR_values(IR_L, IR_R);
+bool wall_detection(void){
 
-	if ((get_prox(IR_FRONT_LEFT) > MIN_DISTANCE_TO_WALL) || (get_prox(IR_FRONT_RIGHT) > MIN_DISTANCE_TO_WALL)){
-		wall_detected = true;
+	if ((get_prox(IR_FRONT_LEFT) > MIN_DISTANCE_TO_WALL) ||
+		(get_prox(IR_FRONT_RIGHT) > MIN_DISTANCE_TO_WALL)){
+		return true;
 	} else {
-		wall_detected = false;
+		return false;
 	}
 }
 
-//simple P regulator implementation
-int16_t p_regulator(float ecart_intensite){ //we want ecart_intensite to be 0 => goal = 0
+//Regulator implementation
+int16_t p_regulator(float intensity_gap){	//we want intensity_gap to be 0
 
-	float current_error = ecart_intensite;
+	float current_error = intensity_gap;
 	float past_error = 0;
 	static float sum_error = 0;
 	float speed = 0;
@@ -36,7 +34,7 @@ int16_t p_regulator(float ecart_intensite){ //we want ecart_intensite to be 0 =>
 	past_error = current_error;
 	sum_error += current_error;
 
-	//we set a maximum and a minimum for the sum to avoid an uncontrolled growth
+	//we set max and a min for the sum to avoid an uncontrolled growth
 	if(sum_error > MAX_SUM_ERROR){
 		sum_error = MAX_SUM_ERROR;
 	}else if(sum_error < -MAX_SUM_ERROR){
@@ -48,7 +46,7 @@ int16_t p_regulator(float ecart_intensite){ //we want ecart_intensite to be 0 =>
     return (int16_t)speed;
 }
 
-static THD_WORKING_AREA(waMotorRegulator, 1024); // sans printf  remettre à 256 
+static THD_WORKING_AREA(waMotorRegulator, 256);
 static THD_FUNCTION(MotorRegulator, arg) {
 
     chRegSetThreadName(__FUNCTION__);
@@ -61,18 +59,37 @@ static THD_FUNCTION(MotorRegulator, arg) {
     while(1){
         time = chVTGetSystemTime();
 		
-		float diff_intensity = audio_get_diff_intensity_front_right() - audio_get_diff_intensity_front_left();	
+		float diff_intensity = audio_get_diff_intensity_front_right() -
+							   audio_get_diff_intensity_front_left();	
 		
-		wall_detection();
+		if(wall_detection()){		//sound sirens if wall detected
+			bool siren = 0;
+			for (size_t i = 0; i < SIREN_LOOPS; ++i)
+			{
+				dac_start();
+				bool siren =! siren;
 
-		// High pass filter, avoid too low values of intensity difference
+				if (siren == 0) {
+					dac_stop();
+					dac_play(SIREN_HFREQ);
+					chThdSleepMilliseconds(50);
+				} else {
+					dac_stop();
+					dac_play(SIREN_LFREQ);
+					chThdSleepMilliseconds(50);
+				}
+			}
+		}
+		//when siren drill is over, resume normal operation
+
+		//high pass filter, avoid too low values of intensity difference
 		if(fabs(diff_intensity) < ERROR_THRESHOLD){
 			speed_correction = NO_CORRECTION;
 		}else{ 
 			speed_correction = p_regulator(diff_intensity);
 		}
 
-        // If the sound is nearly in front of the camera, don't rotate
+        //if the sound is nearly in front of the camera, don't rotate
         if(abs(speed_correction) < ROTATION_THRESHOLD){
         	speed_correction = NO_CORRECTION;
         }
@@ -89,22 +106,10 @@ static THD_FUNCTION(MotorRegulator, arg) {
 		}
 
         //100Hz
-        chThdSleepUntilWindowed(time, time + MS2ST(10)); // 5ms OK ? avanr c'était 10 => 100Hz mais trop lent 
+        chThdSleepUntilWindowed(time, time + MS2ST(10));
     }
 }
 
-// void print_IR_values(int IR_L, int IR_R){
-// 	chprintf((BaseSequentialStream *)&SDU1, "IR_L: %d, IR_R: %d\n", IR_L, IR_R);
-// }
-
 void motor_regulator_start(void) {
 	chThdCreateStatic(waMotorRegulator, sizeof(waMotorRegulator), NORMALPRIO, MotorRegulator, NULL);
-}
-
-void set_enabled_motors(bool enable) {
-	enabled_motors = enable;
-}
-
-void toogle_enabled_motors() {
-	enabled_motors = !enabled_motors;
 }
