@@ -43,7 +43,7 @@ void find_direction(void){
 	float avg_left_intensity = 0; 
 
 	float *ptr_avg_front_intensity = &avg_front_intensity;
-	float *ptr_avg_back_intensity = &avg_back_intensity ;
+	// float *ptr_avg_back_intensity = &avg_back_intensity ;
 	float *ptr_avg_right_intensity = &avg_right_intensity;
 	float *ptr_avg_left_intensity = &avg_left_intensity ;
 	

@@ -16,7 +16,7 @@ static bool wall_detected = false;
 void wall_detection(void){
 	int IR_L = get_prox(IR_FRONT_LEFT);
 	int IR_R = get_prox(IR_FRONT_RIGHT);
-	print_IR_values(IR_L, IR_R);
+	// print_IR_values(IR_L, IR_R);
 
 	if ((get_prox(IR_FRONT_LEFT) > MIN_DISTANCE_TO_WALL) || (get_prox(IR_FRONT_RIGHT) > MIN_DISTANCE_TO_WALL)){
 		wall_detected = true;
@@ -29,7 +29,7 @@ void wall_detection(void){
 int16_t p_regulator(float ecart_intensite){ //we want ecart_intensite to be 0 => goal = 0
 
 	float current_error = ecart_intensite;
-	float speed = 0;
+	float speed = 100;
 
 	speed = KP * current_error;
 
@@ -43,13 +43,15 @@ static THD_FUNCTION(MotorRegulator, arg) {
     (void)arg;
 	systime_t time;
 
-    int16_t speed = 100;
+    int16_t speed = 0;
     int16_t speed_correction = 0;
 
     while(1){
         time = chVTGetSystemTime();
 		
-		float diff_intensity = audio_get_diff_intensity_front_left() - audio_get_diff_intensity_front_right();	
+		float diff_intensity = audio_get_diff_intensity_front_right() - audio_get_diff_intensity_front_left();	
+
+		// chprintf((BaseSequentialStream *)&SDU1, "diff_intensity: %f\n", diff_intensity);
 		
 		wall_detection();
 
@@ -81,9 +83,9 @@ static THD_FUNCTION(MotorRegulator, arg) {
     }
 }
 
-void print_IR_values(int IR_L, int IR_R){
-	chprintf((BaseSequentialStream *)&SDU1, "IR_L: %d, IR_R: %d\n", IR_L, IR_R);
-}
+// void print_IR_values(int IR_L, int IR_R){
+// 	chprintf((BaseSequentialStream *)&SDU1, "IR_L: %d, IR_R: %d\n", IR_L, IR_R);
+// }
 
 void motor_regulator_start(void) {
 	chThdCreateStatic(waMotorRegulator, sizeof(waMotorRegulator), NORMALPRIO, MotorRegulator, NULL);
