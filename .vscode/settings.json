@@ -15,6 +15,7 @@
         "arm_math.h": "c",
         "audio_thread.h": "c",
         "string.h": "c",
-        "audio_processing.h": "c"
+        "audio_processing.h": "c",
+        "usbcfg.h": "c"
     }
 }

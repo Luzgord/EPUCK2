@@ -11,6 +11,7 @@
 #include <arm_math.h>
 #include <spi_comm.h>
 #include <leds.h>
+#include <sensors/proximity.h>
 
 #include "main.h"
 #include "audio_processing.h"
@@ -30,32 +31,32 @@ static void serial_start(void){
 	sdStart(&SD3, &ser_cfg); // UART3.
 }
 
- int main(void) {
+messagebus_t bus;
+MUTEX_DECL(bus_lock);
+CONDVAR_DECL(bus_condvar);
+
+int main(void) {
+   
+    // Global initialization   
     halInit();
     chSysInit();
-    mpu_init();
-    //starts the USB communication
-    usb_start();
-    //starts the serial communication
-    serial_start();
-    //starts the SPI communication for rgb leds 
-    spi_comm_start();
-    // timer12_start();
-    //inits the leds
+    mpu_init();   
+    spi_comm_start();  // Starts the SPI communication for rgb leds 
+    messagebus_init(&bus, &bus_lock, &bus_condvar);
+
+    // Starts the serial communication
+    serial_start();    // UART3 for serial communication
+    usb_start();       // USB for serial communication
+
+    // Starts specific threads or functions from the epuck2 library
     clear_leds();
-
-    //starts the microphones processing thread
     mic_start(&processAudioData);
-
-    //starts the siren thread
-    siren_start();
-
-    //starts the motors thread
+    proximity_start();
     motors_init();
-    motor_regulator_start();
 
-    //starts the communication thread
-    // comms_start();
+    // Start our threads   
+    motor_regulator_start();
+    siren_start(); 
 
     while (1) {
         chThdSleepMilliseconds(1000);

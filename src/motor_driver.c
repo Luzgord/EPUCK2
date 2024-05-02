@@ -4,46 +4,34 @@
 #include <usbcfg.h>
 #include <chprintf.h>
 #include <motors.h>
+#include <sensors/proximity.h>
 
 #include "motor_driver.h"
 #include "main.h"
 #include "audio_processing.h"
 
 static bool enabled_motors = true;
+static bool wall_detected = false; 
 
-// extern float diff_intesity_avg_left_right;
+void wall_detection(void){
+	int IR_L = get_prox(IR_FRONT_LEFT);
+	int IR_R = get_prox(IR_FRONT_RIGHT);
+	print_IR_values(IR_L, IR_R);
 
-//simple PI regulator implementation
-int16_t pi_regulator(float ecart_intensite){ //we want ecart_intensite to be 0 => goal = 0
+	if ((get_prox(IR_FRONT_LEFT) > MIN_DISTANCE_TO_WALL) || (get_prox(IR_FRONT_RIGHT) > MIN_DISTANCE_TO_WALL)){
+		wall_detected = true;
+	} else {
+		wall_detected = false;
+	}
+}
 
-	float current_error = 0;
-	float past_error = 0;
+//simple P regulator implementation
+int16_t p_regulator(float ecart_intensite){ //we want ecart_intensite to be 0 => goal = 0
+
+	float current_error = ecart_intensite;
 	float speed = 0;
 
-	static float sum_error = 0;
-	
-	past_error = current_error;
-	current_error = ecart_intensite;
-
-	//disables the PI regulator if the error is to small
-	//this avoids to always move as we cannot exactly be where we want and 
-	//the mic are a bit noisy
-
-	if(fabs(current_error) < ERROR_THRESHOLD){
-		return 0;
-	}
-
-	sum_error += current_error;
-
-	//we set a maximum and a minimum for the sum to avoid an uncontrolled growth
-
-	if(sum_error > MAX_SUM_ERROR){
-		sum_error = MAX_SUM_ERROR;
-	}else if(sum_error < -MAX_SUM_ERROR){
-		sum_error = -MAX_SUM_ERROR;
-	}
-
-	speed = KP * current_error + KD * (current_error - past_error);
+	speed = KP * current_error;
 
     return (int16_t)speed;
 }
@@ -53,30 +41,28 @@ static THD_FUNCTION(MotorRegulator, arg) {
 
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
+	systime_t time;
 
-    systime_t time;
-
-    int16_t speed = -100;
+    int16_t speed = 100;
     int16_t speed_correction = 0;
 
     while(1){
         time = chVTGetSystemTime();
-        
-        //100 is the speed to go straight
-        // speed = 100; 
-        //computes a correction factor to let the robot rotate to be in front of the noise
 		
-		float diff_intensity = audio_get_diff_intensity();
+		float diff_intensity = audio_get_diff_intensity();	
 		
+		wall_detection();
+
+		// Low pass filter, avoid too low values of intensity difference
 		if(fabs(diff_intensity) < ERROR_THRESHOLD){
 			speed_correction = NO_CORRECTION;
 		}else{ 
-			speed_correction = pi_regulator(diff_intensity);
+			speed_correction = p_regulator(diff_intensity);
 		}
 
-        //if the line is nearly in front of the camera, don't rotate
+        // If the sound is nearly in front of the camera, don't rotate
         if(abs(speed_correction) < ROTATION_THRESHOLD){
-        	speed_correction = 0;
+        	speed_correction = NO_CORRECTION;
         }
 
 		if (enabled_motors){
@@ -91,8 +77,12 @@ static THD_FUNCTION(MotorRegulator, arg) {
 		}
 
         //100Hz
-        chThdSleepUntilWindowed(time, time + MS2ST(10));
+        chThdSleepUntilWindowed(time, time + MS2ST(5)); // 5ms OK ? avanr c'était 10 => 100Hz mais trop lent 
     }
+}
+
+void print_IR_values(int IR_L, int IR_R){
+	chprintf((BaseSequentialStream *)&SDU1, "IR_L: %d, IR_R: %d\n", IR_L, IR_R);
 }
 
 void motor_regulator_start(void) {

@@ -101,7 +101,7 @@ void find_direction(void){
 		}
 	}
 	//send the quadrant to the computer
-	send_quadrant_to_computer(quadrant_status, avg_left_intensity, avg_right_intensity);
+	// send_quadrant_to_computer(quadrant_status, avg_left_intensity, avg_right_intensity);
 }
 
 void send_quadrant_to_computer(QUADRANT_NAME_t name, float avg_intensity_left, float  avg_intensity_right){
