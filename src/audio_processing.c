@@ -25,7 +25,7 @@ static float micRight_output[FFT_SIZE];
 static float micFront_output[FFT_SIZE];
 static float micBack_output[FFT_SIZE];
 
-#define MIN_VALUE_THRESHOLD	10000 //minimum value to detect a peak
+#define MIN_VALUE_THRESHOLD	1500 //minimum value to detect a peak
 
 #define MIN_FREQ		10	//we don't analyze before this index to not waste resources
 #define MAX_FREQ		30	//we don't analyze after this index to not waste resources
