@@ -36,7 +36,7 @@ int16_t p_regulator(float ecart_intensite){ //we want ecart_intensite to be 0 =>
     return (int16_t)speed;
 }
 
-static THD_WORKING_AREA(waMotorRegulator, 256);
+static THD_WORKING_AREA(waMotorRegulator, 1024); // sans printf remettre à 256 
 static THD_FUNCTION(MotorRegulator, arg) {
 
     chRegSetThreadName(__FUNCTION__);
@@ -51,7 +51,7 @@ static THD_FUNCTION(MotorRegulator, arg) {
 		
 		float diff_intensity = audio_get_diff_intensity();	
 		
-		// wall_detection();
+		wall_detection();
 
 		// Low pass filter, avoid too low values of intensity difference
 		if(fabs(diff_intensity) < ERROR_THRESHOLD){
@@ -81,9 +81,9 @@ static THD_FUNCTION(MotorRegulator, arg) {
     }
 }
 
-// void print_IR_values(int IR_L, int IR_R){
-// 	chprintf((BaseSequentialStream *)&SDU1, "IR_L: %d, IR_R: %d\n", IR_L, IR_R);
-// }
+void print_IR_values(int IR_L, int IR_R){
+	chprintf((BaseSequentialStream *)&SDU1, "IR_L: %d, IR_R: %d\n", IR_L, IR_R);
+}
 
 void motor_regulator_start(void) {
 	chThdCreateStatic(waMotorRegulator, sizeof(waMotorRegulator), NORMALPRIO, MotorRegulator, NULL);
