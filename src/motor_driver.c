@@ -14,8 +14,8 @@ static bool enabled_motors = true;
 static bool wall_detected = false; 
 
 void wall_detection(void){
-	int IR_L = get_prox(IR_FRONT_LEFT);
-	int IR_R = get_prox(IR_FRONT_RIGHT);
+	// int IR_L = get_prox(IR_FRONT_LEFT);
+	// int IR_R = get_prox(IR_FRONT_RIGHT);
 	// print_IR_values(IR_L, IR_R);
 
 	if ((get_prox(IR_FRONT_LEFT) > MIN_DISTANCE_TO_WALL) || (get_prox(IR_FRONT_RIGHT) > MIN_DISTANCE_TO_WALL)){
@@ -29,9 +29,21 @@ void wall_detection(void){
 int16_t p_regulator(float ecart_intensite){ //we want ecart_intensite to be 0 => goal = 0
 
 	float current_error = ecart_intensite;
-	float speed = 100;
+	float past_error = 0;
+	static float sum_error = 0;
+	float speed = 0;
 
-	speed = KP * current_error;
+	past_error = current_error;
+	sum_error += current_error;
+
+	//we set a maximum and a minimum for the sum to avoid an uncontrolled growth
+	if(sum_error > MAX_SUM_ERROR){
+		sum_error = MAX_SUM_ERROR;
+	}else if(sum_error < -MAX_SUM_ERROR){
+		sum_error = -MAX_SUM_ERROR;
+	}
+
+	speed = KP * current_error + KI * sum_error + KD * (current_error - past_error);
 
     return (int16_t)speed;
 }
