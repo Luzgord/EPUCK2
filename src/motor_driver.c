@@ -36,7 +36,7 @@ int16_t p_regulator(float ecart_intensite){ //we want ecart_intensite to be 0 =>
     return (int16_t)speed;
 }
 
-static THD_WORKING_AREA(waMotorRegulator, 1024); // sans printf remettre à 256 
+static THD_WORKING_AREA(waMotorRegulator, 1024); // sans printf  remettre à 256 
 static THD_FUNCTION(MotorRegulator, arg) {
 
     chRegSetThreadName(__FUNCTION__);
@@ -50,12 +50,10 @@ static THD_FUNCTION(MotorRegulator, arg) {
         time = chVTGetSystemTime();
 		
 		float diff_intensity = audio_get_diff_intensity_front_right() - audio_get_diff_intensity_front_left();	
-
-		// chprintf((BaseSequentialStream *)&SDU1, "diff_intensity: %f\n", diff_intensity);
 		
 		wall_detection();
 
-		// Low pass filter, avoid too low values of intensity difference
+		// High pass filter, avoid too low values of intensity difference
 		if(fabs(diff_intensity) < ERROR_THRESHOLD){
 			speed_correction = NO_CORRECTION;
 		}else{ 

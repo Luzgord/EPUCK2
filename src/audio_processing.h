@@ -36,6 +36,4 @@ float audio_get_diff_intensity_front_left(void);
 
 float audio_get_diff_intensity_front_right(void);
 
-//void send_quadrant_to_computer(QUADRANT_NAME_t name, float avg_intensity_left, float  avg_intensity_right);
-
 #endif /* AUDIO_PROCESSING_H */

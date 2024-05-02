@@ -11,7 +11,7 @@
 #define NO_CORRECTION			0
 #define IR_FRONT_LEFT 			7
 #define IR_FRONT_RIGHT 			0
-#define MIN_DISTANCE_TO_WALL 	110 // equal to aproximatively 4cm (value obtain emirically)
+#define MIN_DISTANCE_TO_WALL 	110 // e qual to aproximatively 4cm (value obtain emirically)
 
 //start the PI regulator thread
 void motor_regulator_start(void);
