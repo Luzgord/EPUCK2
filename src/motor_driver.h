@@ -1,9 +1,9 @@
 #ifndef PI_REGULATOR_H
 #define PI_REGULATOR_H
 //mettre ces define dici ou dans main.h?
-#define KP						0.4f
-#define KI 						0.0f
-#define KD 						0.0f
+#define KP						0.3f
+#define KI 						0//0.02f
+#define KD 						1000.0f
 #define MAX_SUM_ERROR 			(MOTOR_SPEED_LIMIT)//KI) //vérifier la cohérence de cette valeur avec assistant
 #define ROTATION_THRESHOLD		10
 #define ROTATION_COEFF			1 
