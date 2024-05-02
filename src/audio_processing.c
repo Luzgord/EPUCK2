@@ -27,34 +27,16 @@ static float micBack_output[FFT_SIZE];
 
 #define MIN_VALUE_THRESHOLD	10000 //minimum value to detect a peak
 
-#define MIN_FREQ		10	//we don't analyze before this index to not use resources for nothing
-#define FREQ_FORWARD	16	//250Hz
-#define FREQ_LEFT		19	//296Hz
-#define FREQ_RIGHT		23	//359HZ
-#define FREQ_BACKWARD	26	//406Hz
-#define MAX_FREQ		30	//we don't analyze after this index to not use resources for nothing
+#define MIN_FREQ		10	//we don't analyze before this index to not waste resources
+#define MAX_FREQ		30	//we don't analyze after this index to not waste resources
 
-#define FREQ_FORWARD_L		(FREQ_FORWARD-1)
-#define FREQ_FORWARD_H		(FREQ_FORWARD+1)
-#define FREQ_LEFT_L			(FREQ_LEFT-1)
-#define FREQ_LEFT_H			(FREQ_LEFT+1)
-#define FREQ_RIGHT_L		(FREQ_RIGHT-1)
-#define FREQ_RIGHT_H		(FREQ_RIGHT+1)
-#define FREQ_BACKWARD_L		(FREQ_BACKWARD-1)
-#define FREQ_BACKWARD_H		(FREQ_BACKWARD+1)
-
-static QUADRANT_NAME_t quadrant_status = QUADRANT_0;
 static float diff_intensity_avg_left_right = 0;
-// Taille badasse Ok?
-// static THD_WORKING_AREA(waAudioProcessingThread, 128);  
-// static THD_FUNCTION(AudioProcessingThread, arg) {
-	
-// 	chRegSetThreadName(__FUNCTION__);
-// 	(void)arg;
+static float diff_intensity_avg_front_back = 0;
 
 void find_direction(void){
 	//FFT: 0-512 increasing positive frequencies,
 	//513-1023 decreasing negative frequencies
+
 	float avg_front_intensity = 0;
 	float avg_back_intensity = 0; 
 	float avg_right_intensity = 0;
@@ -64,8 +46,6 @@ void find_direction(void){
 	float *ptr_avg_back_intensity = &avg_back_intensity ;
 	float *ptr_avg_right_intensity = &avg_right_intensity;
 	float *ptr_avg_left_intensity = &avg_left_intensity ;
-	// float* fft_ptr_index = NULL; // pointer to the current index of the FFT array
-		 
 	
 	calculate_average_intensity(micLeft_output, ptr_avg_left_intensity);
 	calculate_average_intensity(micRight_output,ptr_avg_right_intensity);
@@ -73,41 +53,13 @@ void find_direction(void){
 	calculate_average_intensity(micBack_output, ptr_avg_back_intensity);
 	
 	diff_intensity_avg_left_right = *ptr_avg_left_intensity - *ptr_avg_right_intensity;
-	
-		
-// 		     #Front#  
-// 		    # Q2|Q1 # 
-// 	  Left #---------# Right
-// 		    # Q3|Q4 #
-//  		 #Back# 
-//   		 
-	// Search for the quadrant of the max intensity
-	
-	if(*ptr_avg_front_intensity - *ptr_avg_back_intensity > 0){ //-> quadrant 1 or 2 so go forward
-		if(*ptr_avg_right_intensity - *ptr_avg_left_intensity < 0){
-			quadrant_status = QUADRANT_2;
-		}
-		else{
-			quadrant_status = QUADRANT_1;
-		}
-	}
-	//-> quadrant 3 or 4 so go backward
-	else{
-		if(*ptr_avg_right_intensity - *ptr_avg_left_intensity > 0){
-			quadrant_status = QUADRANT_4;
-		}
-		else{
-			quadrant_status = QUADRANT_3;
-		}
-	}
-	//send the quadrant to the computer
-	send_quadrant_to_computer(quadrant_status, avg_left_intensity, avg_right_intensity);
+	diff_intensity_avg_front_back = *ptr_avg_front_intensity - *ptr_avg_back_intensity;
 }
 
-void send_quadrant_to_computer(QUADRANT_NAME_t name, float avg_intensity_left, float  avg_intensity_right){
-    float diff = avg_intensity_left - avg_intensity_right;
-    chprintf((BaseSequentialStream *)&SD3, "Quadrant : %d, Left Micro Intensity : %f, Right Micro Intensity : %f, Intensity Difference : %f\n", name, avg_intensity_left, avg_intensity_right, diff);
-}
+// void send_quadrant_to_computer(QUADRANT_NAME_t name, float avg_intensity_left, float  avg_intensity_right){
+//     float diff = avg_intensity_left - avg_intensity_right;
+//     chprintf((BaseSequentialStream *)&SD3, "Quadrant : %d, Left Micro Intensity : %f, Right Micro Intensity : %f, Intensity Difference : %f\n", name, avg_intensity_left, avg_intensity_right, diff);
+// }
 
 void calculate_average_intensity(float* buffer, float* average_value){
 	
@@ -117,7 +69,6 @@ void calculate_average_intensity(float* buffer, float* average_value){
 	} 
 	*average_value = *average_value / (float)(MAX_FREQ - MIN_FREQ);
 }
-
 
 /*
 *	Callback called when the demodulation of the four microphones is done.
@@ -132,17 +83,16 @@ void calculate_average_intensity(float* buffer, float* average_value){
 void processAudioData(int16_t *data, uint16_t num_samples){
 
 	/*
-	*
 	*	We get 160 samples per mic every 10ms
 	*	So we fill the samples buffers to reach
 	*	1024 samples, then we compute the FFTs.
-	*
 	*/
 
 	static uint16_t nb_samples = 0;
 
 	//loop to fill the buffers
 	for(uint16_t i = 0 ; i < num_samples ; i+=4){
+
 		//construct an array of complex numbers. Put 0 to the imaginary part
 		micRight_cmplx_input[nb_samples] = (float)data[i + MIC_RIGHT];
 		micLeft_cmplx_input[nb_samples] = (float)data[i + MIC_LEFT];
@@ -177,11 +127,9 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		doFFT_optimized(FFT_SIZE, micBack_cmplx_input);
 
 		/*	Magnitude processing
-		*
 		*	Computes the magnitude of the complex numbers and
 		*	stores them in a buffer of FFT_SIZE because it only contains
 		*	real numbers.
-		*
 		*/
 		arm_cmplx_mag_f32(micRight_cmplx_input, micRight_output, FFT_SIZE);
 		arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
@@ -192,7 +140,6 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 		//sends to UART3
 
 		nb_samples = 0;
-
 
 		//sound_remote(micLeft_output);
 		find_direction();
@@ -233,6 +180,10 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 	}
 }
 
-float audio_get_diff_intensity(void){
+float audio_get_diff_intensity_left_right(void){
 	return diff_intensity_avg_left_right;
+}
+
+float audio_get_diff_intensity_front_back(void){
+	return diff_intensity_avg_front_back;
 }
