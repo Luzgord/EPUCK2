@@ -49,7 +49,7 @@ static THD_FUNCTION(MotorRegulator, arg) {
     while(1){
         time = chVTGetSystemTime();
 		
-		float diff_intensity = audio_get_diff_intensity();	
+		float diff_intensity = audio_get_diff_intensity_front_left() - audio_get_diff_intensity_front_right();	
 		
 		wall_detection();
 
