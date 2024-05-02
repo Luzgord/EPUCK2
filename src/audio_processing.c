@@ -30,8 +30,8 @@ static float micBack_output[FFT_SIZE];
 #define MIN_FREQ		10	//we don't analyze before this index to not waste resources
 #define MAX_FREQ		30	//we don't analyze after this index to not waste resources
 
-static float diff_intensity_avg_left_right = 0;
-static float diff_intensity_avg_front_back = 0;
+static float diff_intensity_avg_front_left = 0;
+static float diff_intensity_avg_front_right = 0;
 
 void find_direction(void){
 	//FFT: 0-512 increasing positive frequencies,
@@ -43,17 +43,17 @@ void find_direction(void){
 	float avg_left_intensity = 0; 
 
 	float *ptr_avg_front_intensity = &avg_front_intensity;
-	float *ptr_avg_back_intensity = &avg_back_intensity ;
+	// float *ptr_avg_back_intensity = &avg_back_intensity ;
 	float *ptr_avg_right_intensity = &avg_right_intensity;
 	float *ptr_avg_left_intensity = &avg_left_intensity ;
 	
 	calculate_average_intensity(micLeft_output, ptr_avg_left_intensity);
 	calculate_average_intensity(micRight_output,ptr_avg_right_intensity);
 	calculate_average_intensity(micFront_output,ptr_avg_front_intensity);
-	calculate_average_intensity(micBack_output, ptr_avg_back_intensity);
+	// calculate_average_intensity(micBack_output, ptr_avg_back_intensity);
 	
-	diff_intensity_avg_left_right = *ptr_avg_left_intensity - *ptr_avg_right_intensity;
-	diff_intensity_avg_front_back = *ptr_avg_front_intensity - *ptr_avg_back_intensity;
+	diff_intensity_avg_front_left = *ptr_avg_front_intensity - *ptr_avg_left_intensity;
+	diff_intensity_avg_front_right = *ptr_avg_front_intensity - *ptr_avg_right_intensity;
 }
 
 // void send_quadrant_to_computer(QUADRANT_NAME_t name, float avg_intensity_left, float  avg_intensity_right){
@@ -180,10 +180,10 @@ float* get_audio_buffer_ptr(BUFFER_NAME_t name){
 	}
 }
 
-float audio_get_diff_intensity_left_right(void){
-	return diff_intensity_avg_left_right;
+float audio_get_diff_intensity_front_left(void){
+	return diff_intensity_avg_front_left;
 }
 
-float audio_get_diff_intensity_front_back(void){
-	return diff_intensity_avg_front_back;
+float audio_get_diff_intensity_front_right(void){
+	return diff_intensity_avg_front_right;
 }
