@@ -53,9 +53,10 @@ static THD_FUNCTION(MotorRegulator, arg) {
 		float diff_intensity_front_back = audio_get_diff_intensity_front_back();
 		wall_detection();
 
-		if(diff_intensity_front_back < 0){
-			right_motor_set_speed(200);
-			left_motor_set_speed(-200);
+		while(diff_intensity_front_back < 0){
+			right_motor_set_speed(100);
+			left_motor_set_speed(-100);
+			diff_intensity_front_back = audio_get_diff_intensity_front_back();
 		}	
 
 		// High pass filter, avoid too low values of intensity difference
