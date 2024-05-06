@@ -24,24 +24,15 @@ bool wall_detection(void){
 }
 
 //Regulator implementation
-int16_t p_regulator(float intensity_gap){	//we want intensity_gap to be 0
+int16_t pd_regulator(float intensity_gap){	//we want intensity_gap to be 0
 
 	float current_error = intensity_gap;
 	float past_error = 0;
-	static float sum_error = 0;
-	float speed = 0;
+	float speed = CONST_SPEED;
 
 	past_error = current_error;
-	sum_error += current_error;
 
-	//we set max and a min for the sum to avoid an uncontrolled growth
-	if(sum_error > MAX_SUM_ERROR){
-		sum_error = MAX_SUM_ERROR;
-	}else if(sum_error < -MAX_SUM_ERROR){
-		sum_error = -MAX_SUM_ERROR;
-	}
-
-	speed = KP * current_error + KI * sum_error + KD * (current_error - past_error);
+	speed = KP * current_error + KD * (current_error - past_error);
 
     return (int16_t)speed;
 }
@@ -53,32 +44,36 @@ static THD_FUNCTION(MotorRegulator, arg) {
     (void)arg;
 	systime_t time;
 
-    int16_t speed = 0;
+    int16_t speed = CONST_SPEED;
     int16_t speed_correction = 0;
 
     while(1){
         time = chVTGetSystemTime();
-		
+
 		float diff_intensity = audio_get_diff_intensity_front_right() -
 							   audio_get_diff_intensity_front_left();	
 		
 		if(wall_detection()){		//sound sirens if wall detected
+			right_motor_set_speed(NO_CORRECTION);
+			left_motor_set_speed(NO_CORRECTION);
 			bool siren = 0;
+			dac_start();
 			for (size_t i = 0; i < SIREN_LOOPS; ++i)
 			{
-				dac_start();
-				bool siren =! siren;
+				dac_stop();
+				siren =! siren;
 
 				if (siren == 0) {
-					dac_stop();
+					dac_start();
 					dac_play(SIREN_HFREQ);
 					chThdSleepMilliseconds(50);
 				} else {
-					dac_stop();
+					dac_start();
 					dac_play(SIREN_LFREQ);
 					chThdSleepMilliseconds(50);
 				}
 			}
+			dac_stop();
 		}
 		//when siren drill is over, resume normal operation
 
@@ -86,7 +81,7 @@ static THD_FUNCTION(MotorRegulator, arg) {
 		if(fabs(diff_intensity) < ERROR_THRESHOLD){
 			speed_correction = NO_CORRECTION;
 		}else{ 
-			speed_correction = p_regulator(diff_intensity);
+			speed_correction = pd_regulator(diff_intensity);
 		}
 
         //if the sound is nearly in front of the camera, don't rotate

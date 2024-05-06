@@ -2,9 +2,7 @@
 #define PI_REGULATOR_H
 
 #define KP						0.3f
-#define KI 						0   //0.02f
 #define KD 						1000.0f
-#define MAX_SUM_ERROR 			(MOTOR_SPEED_LIMIT)
 #define ROTATION_THRESHOLD		10
 #define ROTATION_COEFF			1 
 #define ERROR_THRESHOLD			1000
@@ -15,11 +13,12 @@
 #define SIREN_LOOPS             5
 #define SIREN_HFREQ             150
 #define SIREN_LFREQ             100
+#define CONST_SPEED             500
 
 //start the PI regulator thread
 void motor_regulator_start(void);
 
-int16_t p_regulator(float intensity_gap);
+int16_t pd_regulator(float intensity_gap);
 
 bool wall_detection(void);
 
