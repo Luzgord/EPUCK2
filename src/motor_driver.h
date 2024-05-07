@@ -15,6 +15,13 @@
 #define SIREN_LFREQ             100
 #define CONST_SPEED             500
 
+typedef enum __attribute__((__packed__)) operating_mode_t 
+{
+    SILENCE_MODE, 
+    NOISE_MODE, 
+    WALL_DETECTED,s
+} operating_mode_t;
+
 //start the PI regulator thread
 void motor_regulator_start(void);
 
