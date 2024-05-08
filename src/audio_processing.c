@@ -1,3 +1,4 @@
+/* File use from the e-puck library */
 #include <ch.h>
 #include <hal.h>
 #include <usbcfg.h>
@@ -6,179 +7,200 @@
 #include <audio/microphone.h>
 #include <arm_math.h>
 
+/* Specific files for this project */
 #include "audio_processing.h"
 #include "main.h"
 #include "fft.h"
 #include "communications.h"
 
-//semaphore
+/* Minimum value to detect a peak */
+#define MIN_VALUE_THRESHOLD 10000 
+
+/* Frequency range for analysis */
+#define MIN_FREQ 10	/* We don't analyze before this index equivalent to approximately 156[Hz] */
+#define MAX_FREQ 30	/* We don't analyze after this index equivalent to approximately 469[Hz] */
+
+/* Semaphore */
 static BSEMAPHORE_DECL(sendToComputer_sem, TRUE);
 
-//2 times FFT_SIZE because these arrays contain complex numbers (real + imaginary)
+/* Two times FFT_SIZE because these arrays contain complex numbers (real + imaginary) */
 static float micLeft_cmplx_input[2 * FFT_SIZE];
 static float micRight_cmplx_input[2 * FFT_SIZE];
 static float micFront_cmplx_input[2 * FFT_SIZE];
 static float micBack_cmplx_input[2 * FFT_SIZE];
-//Arrays containing the computed magnitude of the complex numbers
+
+/* Arrays containing the computed magnitude of the complex numbers */
 static float micLeft_output[FFT_SIZE];
 static float micRight_output[FFT_SIZE];
 static float micFront_output[FFT_SIZE];
 static float micBack_output[FFT_SIZE];
 
-#define MIN_VALUE_THRESHOLD	10000  //minimum value to detect a peak
-
-#define MIN_FREQ		10	//we don't analyze before this index to not waste resources
-#define MAX_FREQ		30	//we don't analyze after this index to not waste resources
-
+/* Values used to compute the orientation */
 static float diff_intensity_avg_front_left = 0;
 static float diff_intensity_avg_front_right = 0;
 
-void find_direction(void){
-	//FFT: 0-512 increasing positive frequencies,
-	//513-1023 decreasing negative frequencies
+/* ======= Internal Functions ======= */
 
-	float avg_front_intensity = 0;
-	float avg_back_intensity = 0; 
-	float avg_right_intensity = 0;
-	float avg_left_intensity = 0; 
-
-	float *ptr_avg_front_intensity = &avg_front_intensity;
-	float *ptr_avg_right_intensity = &avg_right_intensity;
-	float *ptr_avg_left_intensity = &avg_left_intensity ;
-	
-	calculate_average_intensity(micLeft_output, ptr_avg_left_intensity);
-	calculate_average_intensity(micRight_output,ptr_avg_right_intensity);
-	calculate_average_intensity(micFront_output,ptr_avg_front_intensity);
-	
-	diff_intensity_avg_front_left = *ptr_avg_front_intensity - *ptr_avg_left_intensity;
-	diff_intensity_avg_front_right = *ptr_avg_front_intensity - *ptr_avg_right_intensity;
+/**
+ * @brief Function to calculate the average intensity of a buffer.
+ *
+ * @param buffer Buffer to calculate the average intensity from.
+ * @param average_value Pointer to store the average intensity value.
+ */
+void calculate_average_intensity(float *buffer, float *average_value)
+{
+    // Search for the highest peak
+    for (uint16_t i = MIN_FREQ; i <= MAX_FREQ; i++)
+    { 
+        // Band pass filter
+        *average_value += buffer[i];
+    }
+    *average_value = *average_value / (float)(MAX_FREQ - MIN_FREQ);
 }
 
-void calculate_average_intensity(float* buffer, float* average_value){
-	//search for the highest peak
+/**
+ * @brief Function to find the direction of the sound.
+ */
+void find_direction(void)
+{
+    float avg_front_intensity = 0;
+    float avg_right_intensity = 0;
+    float avg_left_intensity = 0;
 
-	for(uint16_t i = MIN_FREQ ; i <= MAX_FREQ ; i++){ //Band pass filter
-		*average_value += buffer[i];
-	} 
-	*average_value = *average_value / (float)(MAX_FREQ - MIN_FREQ);
+    float *ptr_avg_front_intensity = &avg_front_intensity;
+    float *ptr_avg_right_intensity = &avg_right_intensity;
+    float *ptr_avg_left_intensity = &avg_left_intensity;
+
+    calculate_average_intensity(micLeft_output, ptr_avg_left_intensity);
+    calculate_average_intensity(micRight_output, ptr_avg_right_intensity);
+    calculate_average_intensity(micFront_output, ptr_avg_front_intensity);
+
+    diff_intensity_avg_front_left = *ptr_avg_front_intensity - *ptr_avg_left_intensity;
+    diff_intensity_avg_front_right = *ptr_avg_front_intensity - *ptr_avg_right_intensity;
 }
 
-/*
-*	Callback called when the demodulation of the four microphones is done.
-*	We get 160 samples per mic every 10ms (16kHz)
-*	
-*	params :
-*	int16_t *data			Buffer containing 4 times 160 samples. the samples are sorted by micro
-*							so we have [micRight1, micLeft1, micBack1, micFront1, micRight2, etc...]
-*	uint16_t num_samples	Tells how many data we get in total (should always be 640)
-*/
+/**
+ * @brief Callback called when the demodulation of the four microphones is done.
+ * We get 160 samples per mic every 10ms (16kHz)
+ *
+ * @param data Buffer containing 4 times 160 samples. The samples are sorted by mic
+ * so we have [micRight1, micLeft1, micBack1, micFront1, micRight2, etc...]
+ * @param num_samples Tells how many data we get in total (should always be 640)
+ */
+void processAudioData(int16_t *data, uint16_t num_samples)
+{
+    static uint16_t nb_samples = 0;
 
-void processAudioData(int16_t *data, uint16_t num_samples){
+    // Loop to fill the buffers
+    for (uint16_t i = 0; i < num_samples; i += 4)
+    {
+        // Construct an array of complex numbers. Put 0 to the imaginary part
+        micRight_cmplx_input[nb_samples] = (float)data[i + MIC_RIGHT];
+        micLeft_cmplx_input[nb_samples] = (float)data[i + MIC_LEFT];
+        micBack_cmplx_input[nb_samples] = (float)data[i + MIC_BACK];
+        micFront_cmplx_input[nb_samples] = (float)data[i + MIC_FRONT];
 
-	/*
-	*	We get 160 samples per mic every 10ms
-	*	So we fill the samples buffers to reach
-	*	1024 samples, then we compute the FFTs.
-	*/
+        nb_samples++;
 
-	static uint16_t nb_samples = 0;
+        micRight_cmplx_input[nb_samples] = 0;
+        micLeft_cmplx_input[nb_samples] = 0;
+        micBack_cmplx_input[nb_samples] = 0;
+        micFront_cmplx_input[nb_samples] = 0;
 
-	//loop to fill the buffers
-	for(uint16_t i = 0 ; i < num_samples ; i+=4){
+        nb_samples++;
 
-		//construct an array of complex numbers. Put 0 to the imaginary part
-		micRight_cmplx_input[nb_samples] = (float)data[i + MIC_RIGHT];
-		micLeft_cmplx_input[nb_samples] = (float)data[i + MIC_LEFT];
-		micBack_cmplx_input[nb_samples] = (float)data[i + MIC_BACK];
-		micFront_cmplx_input[nb_samples] = (float)data[i + MIC_FRONT];
+        // Stop when buffer is full
+        if (nb_samples >= (2 * FFT_SIZE))
+        {
+            break;
+        }
+    }
 
-		nb_samples++;
+    if (nb_samples >= (2 * FFT_SIZE))
+    {
+        /* FFT processing */
+        doFFT_optimized(FFT_SIZE, micRight_cmplx_input);
+        doFFT_optimized(FFT_SIZE, micLeft_cmplx_input);
+        doFFT_optimized(FFT_SIZE, micFront_cmplx_input);
+        doFFT_optimized(FFT_SIZE, micBack_cmplx_input);
 
-		micRight_cmplx_input[nb_samples] = 0;
-		micLeft_cmplx_input[nb_samples] = 0;
-		micBack_cmplx_input[nb_samples] = 0;
-		micFront_cmplx_input[nb_samples] = 0;
+        /* Magnitude processing */
+        arm_cmplx_mag_f32(micRight_cmplx_input, micRight_output, FFT_SIZE);
+        arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
+        arm_cmplx_mag_f32(micFront_cmplx_input, micFront_output, FFT_SIZE);
+        arm_cmplx_mag_f32(micBack_cmplx_input, micBack_output, FFT_SIZE);
 
-		nb_samples++;
+        // Send only one FFT result over 10 for 1 mic to not flood the computer
+        // Sends to UART3
 
-		//stop when buffer is full
-		if(nb_samples >= (2 * FFT_SIZE)){
-			break;
-		}
-	}
+        nb_samples = 0;
 
-	if(nb_samples >= (2 * FFT_SIZE)){
-		/*	FFT proccessing
-		*
-		*	This FFT function stores the results in the input buffer given.
-		*	This is an "In Place" function. 
-		*/
-
-		doFFT_optimized(FFT_SIZE, micRight_cmplx_input);
-		doFFT_optimized(FFT_SIZE, micLeft_cmplx_input);
-		doFFT_optimized(FFT_SIZE, micFront_cmplx_input);
-		doFFT_optimized(FFT_SIZE, micBack_cmplx_input);
-
-		/*	Magnitude processing
-		*	Computes the magnitude of the complex numbers and
-		*	stores them in a buffer of FFT_SIZE because it only contains
-		*	real numbers.
-		*/
-
-		arm_cmplx_mag_f32(micRight_cmplx_input, micRight_output, FFT_SIZE);
-		arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
-		arm_cmplx_mag_f32(micFront_cmplx_input, micFront_output, FFT_SIZE);
-		arm_cmplx_mag_f32(micBack_cmplx_input, micBack_output, FFT_SIZE);
-
-		//sends only one FFT result over 10 for 1 mic to not flood the computer
-		//sends to UART3
-
-		nb_samples = 0;
-
-		//to find the direction of the sound
-		find_direction();
-	}
+        // To find the direction of the sound
+        find_direction();
+    }
 }
 
-void wait_send_to_computer(void){
-	chBSemWait(&sendToComputer_sem);
+/**
+ * @brief Waits for the semaphore to send data to the computer.
+ */
+void wait_send_to_computer(void)
+{
+    chBSemWait(&sendToComputer_sem);
 }
 
-float* get_audio_buffer_ptr(BUFFER_NAME_t name){
-	if(name == LEFT_CMPLX_INPUT){
-		return micLeft_cmplx_input;
-	}
-	else if (name == RIGHT_CMPLX_INPUT){
-		return micRight_cmplx_input;
-	}
-	else if (name == FRONT_CMPLX_INPUT){
-		return micFront_cmplx_input;
-	}
-	else if (name == BACK_CMPLX_INPUT){
-		return micBack_cmplx_input;
-	}
-	else if (name == LEFT_OUTPUT){
-		return micLeft_output;
-	}
-	else if (name == RIGHT_OUTPUT){
-		return micRight_output;
-	}
-	else if (name == FRONT_OUTPUT){
-		return micFront_output;
-	}
-	else if (name == BACK_OUTPUT){
-		return micBack_output;
-	}
-	else{
-		return NULL;
-	}
+/**
+ * @brief Returns a pointer to a specified audio buffer.
+ *
+ * @param name Name of the buffer to get.
+ * @return Pointer to the requested audio buffer.
+ */
+float *get_audio_buffer_ptr(BUFFER_NAME_t name)
+{
+    if (name == LEFT_CMPLX_INPUT)
+    {
+        return micLeft_cmplx_input;
+    }
+    else if (name == RIGHT_CMPLX_INPUT)
+    {
+        return micRight_cmplx_input;
+    }
+    else if (name == FRONT_CMPLX_INPUT)
+    {
+        return micFront_cmplx_input;
+    }
+    else if (name == BACK_CMPLX_INPUT)
+    {
+        return micBack_cmplx_input;
+    }
+    else if (name == LEFT_OUTPUT)
+    {
+        return micLeft_output;
+    }
+    else if (name == RIGHT_OUTPUT)
+    {
+        return micRight_output;
+    }
+    else if (name == FRONT_OUTPUT)
+    {
+        return micFront_output;
+    }
+    else if (name == BACK_OUTPUT)
+    {
+        return micBack_output;
+    }
+    else
+    {
+        return NULL;
+    }
 }
 
-//getters
-float audio_get_diff_intensity_front_left(void){
-	return diff_intensity_avg_front_left;
+/* Getters */
+float audio_get_diff_intensity_front_left(void)
+{
+    return diff_intensity_avg_front_left;
 }
 
-float audio_get_diff_intensity_front_right(void){
-	return diff_intensity_avg_front_right;
+float audio_get_diff_intensity_front_right(void)
+{
+    return diff_intensity_avg_front_right;
 }

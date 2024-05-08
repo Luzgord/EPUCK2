@@ -16,6 +16,7 @@
         "audio_thread.h": "c",
         "string.h": "c",
         "audio_processing.h": "c",
-        "usbcfg.h": "c"
+        "usbcfg.h": "c",
+        "motors.h": "c"
     }
 }
