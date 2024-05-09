@@ -17,6 +17,9 @@
         "string.h": "c",
         "audio_processing.h": "c",
         "usbcfg.h": "c",
-        "motors.h": "c"
+        "motors.h": "c",
+        "chprintf.h": "c",
+        "math.h": "c",
+        "communications.h": "c"
     }
 }

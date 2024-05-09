@@ -10,11 +10,11 @@
 #include "audio_processing.h"
 #include "main.h"
 #include "fft.h"
-#include "communications.h"
+// #include "communications.h"
 
 /* Minimum value to detect a peak */
-#define MIN_VALUE_THRESHOLD 10000 
-
+#define FFT_SIZE 				1024	
+#define MAX_VALUE_PTR_FFT_SIZE 	512
 /* Frequency range for analysis */
 #define MIN_FREQ            10	        // We don't analyze before this index equivalent to approximately 156[Hz] 
 #define MAX_FREQ            30	        // We don't analyze after this index equivalent to approximately 469[Hz] 

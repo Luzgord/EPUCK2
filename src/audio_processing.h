@@ -3,9 +3,6 @@
 
 #include <stdint.h>
 
-#define FFT_SIZE 				1024	
-#define MAX_VALUE_PTR_FFT_SIZE 	512
-
 typedef enum {
     // 2 times FFT_SIZE because these arrays contain complex numbers (real + imaginary)
     LEFT_CMPLX_INPUT = 0,

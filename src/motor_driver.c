@@ -1,8 +1,8 @@
-#include <ch.h>
+// #include <ch.h>
 #include <hal.h>
 #include <math.h>
-#include <usbcfg.h>
-#include <chprintf.h>
+// #include <usbcfg.h>
+// #include <chprintf.h>
 #include <motors.h>
 #include <sensors/proximity.h>
 #include <audio/audio_thread.h>
@@ -12,6 +12,44 @@
 #include "main.h"
 #include "audio_processing.h"
 
+/*PD regulator define*/
+#define KP						0.3f
+#define KD 						0.0f //1000.0f
+
+/*Speedy rotation define*/
+#define ROTATION_THRESHOLD		10
+#define ROTATION_COEFF			1 
+#define NO_CORRECTION			0
+#define CONST_SPEED             500
+
+/*Sound threshold define*/
+#define ERROR_THRESHOLD			1000
+#define ACTIVATION_THERSHOLD         2000
+
+/*IR sensors define*/
+#define IR_FRONT_LEFT 			7
+#define IR_FRONT_RIGHT 			0
+#define MIN_DISTANCE_TO_WALL 	110 //equal to approximately 4cm
+
+/*Siren define, for sound emmission*/
+#define SIREN_LOOPS             5
+#define SIREN_HFREQ             150
+#define SIREN_LFREQ             100
+
+/*Selector define for oral presentation only*/
+#define SELECTOR_POS_9          8
+
+/**
+ * @brief Operating modes of the robot, packed to use one byte only.
+ */
+typedef enum __attribute__((__packed__)) operating_mode_t 
+{
+    SILENCE_MODE,    /**< Robot is in silence mode : nothing to do, wait for noise. */
+    NOISE_MODE,      /**< Robot is in noise mode : search for the noise source. */
+    WALL_DETECTED,   /**< Robot detected a wall : stop and make sound (beacon) with light if there is a wall. */
+} operating_mode_t;
+
+/* Static condition for beacon activation */
 static bool enabled_giro = false;
 
 /************************* INTERNAL FUNCTIONS **********************************/
@@ -37,8 +75,8 @@ static bool wall_detection(void){
  * @return true if a sound is detected, false otherwise.
  */
 static bool sound_detected(void){
-	if ((audio_get_diff_intensity_front_left() > SOUND_THERSHOLD) ||
-		(audio_get_diff_intensity_front_right() > SOUND_THERSHOLD)){
+	if ((audio_get_diff_intensity_front_left() > ACTIVATION_THERSHOLD) ||
+		(audio_get_diff_intensity_front_right() > ACTIVATION_THERSHOLD)){
 		return true;
 	} else {
 		return false;
@@ -101,13 +139,13 @@ static void play_siren(void){
 
 /**************************** THREAD *************************************/
 
-static THD_WORKING_AREA(waMotorRegulator, 256);
+static THD_WORKING_AREA(waMotorRegulator, 128);
 static THD_FUNCTION(MotorRegulator, arg){
 
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
+	
 	systime_t time;
-
     int16_t speed = CONST_SPEED;
     int16_t speed_correction = 0;
 	
@@ -120,9 +158,8 @@ static THD_FUNCTION(MotorRegulator, arg){
 		switch (mode)
 		{
 		case SILENCE_MODE:			
-			// set_motor_speed(NO_CORRECTION, NO_CORRECTION);
 
-			if(sound_detected())	{
+			if(sound_detected()){
 				enabled_giro = true;
 				mode = NOISE_MODE;
 			} else {
@@ -134,7 +171,6 @@ static THD_FUNCTION(MotorRegulator, arg){
 			enabled_giro = true;
 
 			float diff_intensity = audio_get_diff_intensity_front_right() - audio_get_diff_intensity_front_left();
-
 
 			if(fabs(diff_intensity) < ERROR_THRESHOLD){
 				speed_correction = NO_CORRECTION;
