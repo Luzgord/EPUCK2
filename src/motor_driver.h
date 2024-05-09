@@ -9,9 +9,9 @@
 void motor_regulator_start(void);
 
 /**
- * @brief Get the status of the gyroscope.
+ * @brief Get the status of the beacon.
  * 
- * @return true if the gyroscope is enabled, false otherwise.
+ * @return true if the beacon is enabled, false otherwise.
  */
 bool get_enabled_giro(void);
 

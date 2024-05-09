@@ -13,8 +13,8 @@
 #include "audio_processing.h"
 
 /*PD regulator define*/
-#define KP						0.3f
-#define KD 						0.0f //1000.0f
+#define KP						0.2f
+#define KD 						1000.0f
 
 /*Speedy rotation define*/
 #define ROTATION_THRESHOLD		10
@@ -22,9 +22,8 @@
 #define NO_CORRECTION			0
 #define CONST_SPEED             500
 
-/*Sound threshold define*/
-#define ERROR_THRESHOLD			1000
-#define ACTIVATION_THERSHOLD         2000
+/*Sound sensibility define*/
+#define SOUND_THRESHOLD			1000
 
 /*IR sensors define*/
 #define IR_FRONT_LEFT 			7
@@ -75,8 +74,8 @@ static bool wall_detection(void){
  * @return true if a sound is detected, false otherwise.
  */
 static bool sound_detected(void){
-	if ((audio_get_diff_intensity_front_left() > ACTIVATION_THERSHOLD) ||
-		(audio_get_diff_intensity_front_right() > ACTIVATION_THERSHOLD)){
+	if ((audio_get_diff_intensity_front_left() > SOUND_THRESHOLD) ||
+		(audio_get_diff_intensity_front_right() > SOUND_THRESHOLD)){
 		return true;
 	} else {
 		return false;
@@ -172,7 +171,7 @@ static THD_FUNCTION(MotorRegulator, arg){
 
 			float diff_intensity = audio_get_diff_intensity_front_right() - audio_get_diff_intensity_front_left();
 
-			if(fabs(diff_intensity) < ERROR_THRESHOLD){
+			if(fabs(diff_intensity) < SOUND_THRESHOLD){
 				speed_correction = NO_CORRECTION;
 			}else{ 
 				speed_correction = pd_regulator(diff_intensity);

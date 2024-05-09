@@ -7,18 +7,17 @@
 #include "siren.h"
 #include "motor_driver.h"
 
-static THD_WORKING_AREA(waSiren, 256);
+/**************************** THREAD *************************************/
+
+static THD_WORKING_AREA(waSiren, 16);
 static THD_FUNCTION(ThdSiren, arg) {
 
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
 
-
 	bool first_blink = true;
 
     while(1) {
-		//sirens always active
-		//toggling the LEDS in an X pattern
 		if(get_enabled_giro()){
 			if(first_blink){
 				set_rgb_led(LED2, 0, 0, RGB_MAX_INTENSITY); //blue LEDS first
@@ -40,6 +39,7 @@ static THD_FUNCTION(ThdSiren, arg) {
 	}
 }
 
+/************************* PUBLIC FUNCTION **********************************/
 void siren_start(void) {
     chThdCreateStatic(waSiren, sizeof(waSiren), NORMALPRIO, ThdSiren, NULL);
 }
