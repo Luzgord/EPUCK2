@@ -14,7 +14,14 @@
 
 static bool enabled_giro = false;
 
-bool wall_detection(void){
+/************************* INTERNAL FUNCTIONS **********************************/
+
+/** 
+ * @brief Check if there is a wall in front of the robot.
+ *
+ * @return true if there is a wall, false otherwise.
+ */
+static bool wall_detection(void){
 
 	if ((get_prox(IR_FRONT_LEFT) > MIN_DISTANCE_TO_WALL) ||
 		(get_prox(IR_FRONT_RIGHT) > MIN_DISTANCE_TO_WALL)){
@@ -24,7 +31,12 @@ bool wall_detection(void){
 	}
 }
 
-bool sound_detected(void){
+/** 
+ * @brief Check if a sound is detected by the robot's microphones.
+ *
+ * @return true if a sound is detected, false otherwise.
+ */
+static bool sound_detected(void){
 	if ((audio_get_diff_intensity_front_left() > SOUND_THERSHOLD) ||
 		(audio_get_diff_intensity_front_right() > SOUND_THERSHOLD)){
 		return true;
@@ -33,8 +45,13 @@ bool sound_detected(void){
 	}
 }
 
-//Regulator implementation
-int16_t pd_regulator(float intensity_gap){	//we want intensity_gap to be 0
+/** 
+ * @brief Proportional-Derivative (PD) regulator to correct the robot's trajectory based on the intensity gap between the microphones.
+ *
+ * @param intensity_gap The difference in intensity between the microphones to correct, shall be 0.
+ * @return The speed correction calculated by the PD regulator.
+ */
+static int16_t pd_regulator(float intensity_gap){	
 
 	float current_error = intensity_gap;
 	float past_error = 0;
@@ -47,12 +64,21 @@ int16_t pd_regulator(float intensity_gap){	//we want intensity_gap to be 0
     return (int16_t)speed;
 }
 
-void set_motor_speed(int16_t speed_right, int16_t speed_left){
+/** 
+ * @brief Set the speed of the robot's motors.
+ *
+ * @param speed_right Speed of the right motor.
+ * @param speed_left Speed of the left motor.
+ */
+static void set_motor_speed(int16_t speed_right, int16_t speed_left){
 	right_motor_set_speed(speed_right);
 	left_motor_set_speed(speed_left);
 }
 
-void play_siren(void){
+/** 
+ * @brief Play a siren sound using the robot's speaker.
+ */
+static void play_siren(void){
 	bool siren = 0;
 	dac_start();
 	for (size_t i = 0; i < SIREN_LOOPS; ++i)
@@ -73,8 +99,10 @@ void play_siren(void){
 	dac_stop();
 }
 
+/**************************** THREAD *************************************/
+
 static THD_WORKING_AREA(waMotorRegulator, 256);
-static THD_FUNCTION(MotorRegulator, arg) {
+static THD_FUNCTION(MotorRegulator, arg){
 
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
@@ -113,10 +141,6 @@ static THD_FUNCTION(MotorRegulator, arg) {
 			}else{ 
 				speed_correction = pd_regulator(diff_intensity);
 			}
-			//pas sur de l'utilité de cette condition
-			// if(abs(speed_correction) < ROTATION_THRESHOLD){
-    	    // 	speed_correction = NO_CORRECTION;
-    	    // }
 
 			// Following condition is only for the oral presentation, to show the pd controller
 			if(get_selector() == SELECTOR_POS_9){			
@@ -155,12 +179,18 @@ static THD_FUNCTION(MotorRegulator, arg) {
 		default:
 			break;
 		}
-		chprintf((BaseSequentialStream *)&SD3, "Selecteur : %d\n", get_selector());
 		chThdSleepUntilWindowed(time, time + MS2ST(10));
 	}
 
 }
 
+/************************* PUBLIC FUNCTION **********************************/
+
 void motor_regulator_start(void) {
 	chThdCreateStatic(waMotorRegulator, sizeof(waMotorRegulator), NORMALPRIO, MotorRegulator, NULL);
 }
+
+bool get_enabled_giro(void){
+	return enabled_giro;
+}
+
