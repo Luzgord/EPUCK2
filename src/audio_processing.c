@@ -20,9 +20,6 @@
 #define MIN_FREQ            10	        // We don't analyze before this index equivalent to approximately 156[Hz] 
 #define MAX_FREQ            30	        // We don't analyze after this index equivalent to approximately 469[Hz] 
 
-/* Semaphore */
-static BSEMAPHORE_DECL(sendToComputer_sem, TRUE);
-
 /* Two times FFT_SIZE because these arrays contain complex numbers (real + imaginary) */
 static float micLeft_cmplx_input[2 * FFT_SIZE];
 static float micRight_cmplx_input[2 * FFT_SIZE];
@@ -138,66 +135,67 @@ void processAudioData(int16_t *data, uint16_t num_samples)
     }
 }
 
-/**
- * @brief Waits for the semaphore to send data to the computer.
-**/
-void wait_send_to_computer(void)
-{
-    chBSemWait(&sendToComputer_sem);
-}
+// /**
+//  * @brief Returns a pointer to a specified audio buffer.
+//  *
+//  * @param name Name of the buffer to get.
+//  * @return Pointer to the requested audio buffer.
+// **/
+// float *get_audio_buffer_ptr(BUFFER_NAME_t name)
+// {
+//     if (name == LEFT_CMPLX_INPUT)
+//     {
+//         return micLeft_cmplx_input;
+//     }
+//     else if (name == RIGHT_CMPLX_INPUT)
+//     {
+//         return micRight_cmplx_input;
+//     }
+//     else if (name == FRONT_CMPLX_INPUT)
+//     {
+//         return micFront_cmplx_input;
+//     }
+//     else if (name == BACK_CMPLX_INPUT)
+//     {
+//         return micBack_cmplx_input;
+//     }
+//     else if (name == LEFT_OUTPUT)
+//     {
+//         return micLeft_output;
+//     }
+//     else if (name == RIGHT_OUTPUT)
+//     {
+//         return micRight_output;
+//     }
+//     else if (name == FRONT_OUTPUT)
+//     {
+//         return micFront_output;
+//     }
+//     else if (name == BACK_OUTPUT)
+//     {
+//         return micBack_output;
+//     }
+//     else
+//     {
+//         return NULL;
+//     }
+// }
 
 /**
- * @brief Returns a pointer to a specified audio buffer.
- *
- * @param name Name of the buffer to get.
- * @return Pointer to the requested audio buffer.
-**/
-float *get_audio_buffer_ptr(BUFFER_NAME_t name)
-{
-    if (name == LEFT_CMPLX_INPUT)
-    {
-        return micLeft_cmplx_input;
-    }
-    else if (name == RIGHT_CMPLX_INPUT)
-    {
-        return micRight_cmplx_input;
-    }
-    else if (name == FRONT_CMPLX_INPUT)
-    {
-        return micFront_cmplx_input;
-    }
-    else if (name == BACK_CMPLX_INPUT)
-    {
-        return micBack_cmplx_input;
-    }
-    else if (name == LEFT_OUTPUT)
-    {
-        return micLeft_output;
-    }
-    else if (name == RIGHT_OUTPUT)
-    {
-        return micRight_output;
-    }
-    else if (name == FRONT_OUTPUT)
-    {
-        return micFront_output;
-    }
-    else if (name == BACK_OUTPUT)
-    {
-        return micBack_output;
-    }
-    else
-    {
-        return NULL;
-    }
-}
-
-/* Getters**/
+ * @brief Getter for the average difference in intensity for the front left audio.
+ * 
+ * @return The average difference in intensity for the front left audio.
+ */
 float audio_get_diff_intensity_front_left(void)
 {
     return diff_intensity_avg_front_left;
 }
 
+/**
+ * @brief Getter for the average difference in intensity for the front right audio.
+ * 
+ * @return The average difference in intensity for the front right audio.
+ */
 float audio_get_diff_intensity_front_right(void)
 {
     return diff_intensity_avg_front_right;

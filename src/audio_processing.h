@@ -32,19 +32,6 @@ typedef enum {
 void processAudioData(int16_t *data, uint16_t num_samples);
 
 /**
- * @brief Puts the invoking thread into sleep until it can process the audio data.
-**/
-void wait_send_to_computer(void);
-
-/**
- * @brief Finds the highest peak in a buffer.
- *
- * @param buffer Buffer to find the highest peak from.
- * @param max_value Pointer to store the maximum value found.
-**/
-void find_highest_peak(float *buffer, float *max_value);
-
-/**
  * @brief Gets the difference in intensity between the front-left and front-right microphones.
  *
  * @return Difference in intensity between front-left and front-right.
