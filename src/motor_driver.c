@@ -14,7 +14,7 @@
 
 /*PD regulator define*/
 #define KP						0.2f
-#define KD 						1000.0f
+#define KD 						0.0f //1000.0f
 
 /*Speedy rotation define*/
 #define ROTATION_THRESHOLD		10
@@ -176,7 +176,10 @@ static THD_FUNCTION(MotorRegulator, arg){
 			}else{ 
 				speed_correction = pd_regulator(diff_intensity);
 			}
-
+			//if the sound is nearly in front of the camera, don't rotate
+       		if(abs(speed_correction) < ROTATION_THRESHOLD){
+        	speed_correction = NO_CORRECTION;
+        	}
 			// Following condition is only for the oral presentation, to show the pd controller
 			if(get_selector() == SELECTOR_POS_9){			
 				speed = NO_CORRECTION;
