@@ -20,6 +20,11 @@
         "motors.h": "c",
         "chprintf.h": "c",
         "math.h": "c",
-        "communications.h": "c"
+        "communications.h": "c",
+        "stdlib.h": "c",
+        "spi_comm.h": "c",
+        "microphone.h": "c",
+        "dcmi_camera.h": "c",
+        "fft.h": "c"
     }
 }

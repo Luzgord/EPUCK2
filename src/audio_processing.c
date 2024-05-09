@@ -1,21 +1,22 @@
-/* File use from the e-puck library */
+/* File use from the e-puck library**/
 #include <ch.h>
 #include <hal.h>
 #include <usbcfg.h>
-#include <chprintf.h>
+// #include <chprintf.h>
 #include <motors.h>
 #include <audio/microphone.h>
-#include <arm_math.h>
-/* Specific files for this project */
+// #include <arm_math.h>
+
+/* Specific files for this project**/
 #include "audio_processing.h"
 #include "main.h"
 #include "fft.h"
 // #include "communications.h"
 
-/* Minimum value to detect a peak */
+/* Minimum value to detect a peak**/
 #define FFT_SIZE 				1024	
 #define MAX_VALUE_PTR_FFT_SIZE 	512
-/* Frequency range for analysis */
+/* Frequency range for analysis**/
 #define MIN_FREQ            10	        // We don't analyze before this index equivalent to approximately 156[Hz] 
 #define MAX_FREQ            30	        // We don't analyze after this index equivalent to approximately 469[Hz] 
 
@@ -38,20 +39,18 @@ static float micBack_output[FFT_SIZE];
 static float diff_intensity_avg_front_left = 0;
 static float diff_intensity_avg_front_right = 0;
 
-/* ======= Internal Functions ======= */
+/************************* INTERNAL FUNCTIONS **********************************/
 
 /**
- * @brief Function to calculate the average intensity of a buffer.
+ * @brief Calculates the average intensity of a buffer.
  *
  * @param buffer Buffer to calculate the average intensity from.
  * @param average_value Pointer to store the average intensity value.
- */
-void calculate_average_intensity(float *buffer, float *average_value)
+**/
+static void calculate_average_intensity(float *buffer, float *average_value)
 {
-    // Search for the highest peak
-    for (uint16_t i = MIN_FREQ; i <= MAX_FREQ; i++)
-    { 
-        // Band pass filter
+    for (uint16_t i = MIN_FREQ; i <= MAX_FREQ; i++) // Band pass filter
+    {   
         *average_value += buffer[i];
     }
     *average_value = *average_value / (float)(MAX_FREQ - MIN_FREQ);
@@ -59,7 +58,7 @@ void calculate_average_intensity(float *buffer, float *average_value)
 
 /**
  * @brief Function to find the direction of the sound.
- */
+**/
 void find_direction(void)
 {
     float avg_front_intensity = 0;
@@ -78,6 +77,9 @@ void find_direction(void)
     diff_intensity_avg_front_right = *ptr_avg_front_intensity - *ptr_avg_right_intensity;
 }
 
+
+/************************* EXTERNAL FUNCTION **********************************/
+
 /**
  * @brief Callback called when the demodulation of the four microphones is done.
  * We get 160 samples per mic every 10ms (16kHz)
@@ -85,7 +87,7 @@ void find_direction(void)
  * @param data Buffer containing 4 times 160 samples. The samples are sorted by mic
  * so we have [micRight1, micLeft1, micBack1, micFront1, micRight2, etc...]
  * @param num_samples Tells how many data we get in total (should always be 640)
- */
+**/
 void processAudioData(int16_t *data, uint16_t num_samples)
 {
     static uint16_t nb_samples = 0;
@@ -117,20 +119,17 @@ void processAudioData(int16_t *data, uint16_t num_samples)
 
     if (nb_samples >= (2 * FFT_SIZE))
     {
-        /* FFT processing */
+        /* FFT processing**/
         doFFT_optimized(FFT_SIZE, micRight_cmplx_input);
         doFFT_optimized(FFT_SIZE, micLeft_cmplx_input);
         doFFT_optimized(FFT_SIZE, micFront_cmplx_input);
         doFFT_optimized(FFT_SIZE, micBack_cmplx_input);
 
-        /* Magnitude processing */
+        /* Magnitude processing**/
         arm_cmplx_mag_f32(micRight_cmplx_input, micRight_output, FFT_SIZE);
         arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
         arm_cmplx_mag_f32(micFront_cmplx_input, micFront_output, FFT_SIZE);
         arm_cmplx_mag_f32(micBack_cmplx_input, micBack_output, FFT_SIZE);
-
-        // Send only one FFT result over 10 for 1 mic to not flood the computer
-        // Sends to UART3
 
         nb_samples = 0;
 
@@ -141,7 +140,7 @@ void processAudioData(int16_t *data, uint16_t num_samples)
 
 /**
  * @brief Waits for the semaphore to send data to the computer.
- */
+**/
 void wait_send_to_computer(void)
 {
     chBSemWait(&sendToComputer_sem);
@@ -152,7 +151,7 @@ void wait_send_to_computer(void)
  *
  * @param name Name of the buffer to get.
  * @return Pointer to the requested audio buffer.
- */
+**/
 float *get_audio_buffer_ptr(BUFFER_NAME_t name)
 {
     if (name == LEFT_CMPLX_INPUT)
@@ -193,7 +192,7 @@ float *get_audio_buffer_ptr(BUFFER_NAME_t name)
     }
 }
 
-/* Getters */
+/* Getters**/
 float audio_get_diff_intensity_front_left(void)
 {
     return diff_intensity_avg_front_left;

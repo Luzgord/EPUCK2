@@ -1,3 +1,9 @@
+/**
+ * @file     main.c
+ * @brief    This source file contains the main function initiate all process.
+**/
+
+/*File from e-puck library*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,14 +11,13 @@
 #include <hal.h>
 #include <memory_protection.h>
 #include <usbcfg.h>
-#include <chprintf.h>
 #include <motors.h>
 #include <audio/microphone.h>
 #include <arm_math.h>
 #include <spi_comm.h>
 #include <leds.h>
 #include <sensors/proximity.h>
-
+/*Specific files*/
 #include "main.h"
 #include "audio_processing.h"
 #include "fft.h"
@@ -46,7 +51,7 @@ int main(void) {
 
     // Starts the serial communication
     serial_start();    // UART3 for serial communication
-    usb_start();       // USB for serial communication
+    // usb_start();       // USB for serial communication
 
     // Starts specific threads or functions from the epuck2 library
     clear_leds();

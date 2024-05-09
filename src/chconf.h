@@ -12,7 +12,7 @@
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
- */
+**/
 
 /**
  * @file    templates/chconf.h
@@ -23,7 +23,7 @@
  * @addtogroup config
  * @details Kernel related settings and hooks.
  * @{
- */
+**/
 
 #ifndef _CHCONF_H_
 #define _CHCONF_H_
@@ -32,20 +32,20 @@
 /**
  * @name System timers settings
  * @{
- */
+**/
 /*===========================================================================*/
 
 /**
  * @brief   System time counter resolution.
  * @note    Allowed values are 16 or 32 bits.
- */
+**/
 #define CH_CFG_ST_RESOLUTION                32
 
 /**
  * @brief   System tick frequency.
  * @details Frequency of the system timer that drives the system ticks. This
  *          setting also defines the system tick time unit.
- */
+**/
 #define CH_CFG_ST_FREQUENCY                 1000
 
 /**
@@ -55,16 +55,16 @@
  *          of ticks that is safe to specify in a timeout directive.
  *          The value one is not valid, timeouts are rounded up to
  *          this value.
- */
+**/
 #define CH_CFG_ST_TIMEDELTA                 0
 
-/** @} */
+/** @}**/
 
 /*===========================================================================*/
 /**
  * @name Kernel parameters and options
  * @{
- */
+**/
 /*===========================================================================*/
 
 /**
@@ -78,7 +78,7 @@
  *          and generally faster.
  * @note    The round robin preemption is not supported in tickless mode and
  *          must be set to zero in that case.
- */
+**/
 #define CH_CFG_TIME_QUANTUM                 20
 
 /**
@@ -91,7 +91,7 @@
  * @note    In order to let the OS manage the whole RAM the linker script must
  *          provide the @p __heap_base__ and @p __heap_end__ symbols.
  * @note    Requires @p CH_CFG_USE_MEMCORE.
- */
+**/
 #define CH_CFG_MEMCORE_SIZE                 0
 
 /**
@@ -99,16 +99,16 @@
  * @details When this option is activated the function @p chSysInit()
  *          does not spawn the idle thread. The application @p main()
  *          function becomes the idle thread and must implement an
- *          infinite loop. */
+ *          infinite loop.**/
 #define CH_CFG_NO_IDLE_THREAD               FALSE
 
-/** @} */
+/** @}**/
 
 /*===========================================================================*/
 /**
  * @name Performance options
  * @{
- */
+**/
 /*===========================================================================*/
 
 /**
@@ -118,16 +118,16 @@
  *
  * @note    This is not related to the compiler optimization options.
  * @note    The default is @p TRUE.
- */
+**/
 #define CH_CFG_OPTIMIZE_SPEED               TRUE
 
-/** @} */
+/** @}**/
 
 /*===========================================================================*/
 /**
  * @name Subsystem options
  * @{
- */
+**/
 /*===========================================================================*/
 
 /**
@@ -136,7 +136,7 @@
  *          the kernel.
  *
  * @note    The default is @p TRUE.
- */
+**/
 #define CH_CFG_USE_TM                       TRUE
 
 /**
@@ -144,7 +144,7 @@
  * @details If enabled then the registry APIs are included in the kernel.
  *
  * @note    The default is @p TRUE.
- */
+**/
 #define CH_CFG_USE_REGISTRY                 TRUE
 
 /**
@@ -153,7 +153,7 @@
  *          the kernel.
  *
  * @note    The default is @p TRUE.
- */
+**/
 #define CH_CFG_USE_WAITEXIT                 TRUE
 
 /**
@@ -161,7 +161,7 @@
  * @details If enabled then the Semaphores APIs are included in the kernel.
  *
  * @note    The default is @p TRUE.
- */
+**/
 #define CH_CFG_USE_SEMAPHORES               TRUE
 
 /**
@@ -172,7 +172,7 @@
  * @note    The default is @p FALSE. Enable this if you have special
  *          requirements.
  * @note    Requires @p CH_CFG_USE_SEMAPHORES.
- */
+**/
 #define CH_CFG_USE_SEMAPHORES_PRIORITY      FALSE
 
 /**
@@ -180,7 +180,7 @@
  * @details If enabled then the mutexes APIs are included in the kernel.
  *
  * @note    The default is @p TRUE.
- */
+**/
 #define CH_CFG_USE_MUTEXES                  TRUE
 
 /**
@@ -190,7 +190,7 @@
  *
  * @note    The default is @p FALSE.
  * @note    Requires @p CH_CFG_USE_MUTEXES.
- */
+**/
 #define CH_CFG_USE_MUTEXES_RECURSIVE        TRUE
 
 /**
@@ -200,7 +200,7 @@
  *
  * @note    The default is @p TRUE.
  * @note    Requires @p CH_CFG_USE_MUTEXES.
- */
+**/
 #define CH_CFG_USE_CONDVARS                 TRUE
 
 /**
@@ -210,7 +210,7 @@
  *
  * @note    The default is @p TRUE.
  * @note    Requires @p CH_CFG_USE_CONDVARS.
- */
+**/
 #define CH_CFG_USE_CONDVARS_TIMEOUT         TRUE
 
 /**
@@ -218,7 +218,7 @@
  * @details If enabled then the event flags APIs are included in the kernel.
  *
  * @note    The default is @p TRUE.
- */
+**/
 #define CH_CFG_USE_EVENTS                   TRUE
 
 /**
@@ -228,7 +228,7 @@
  *
  * @note    The default is @p TRUE.
  * @note    Requires @p CH_CFG_USE_EVENTS.
- */
+**/
 #define CH_CFG_USE_EVENTS_TIMEOUT           TRUE
 
 /**
@@ -237,7 +237,7 @@
  *          in the kernel.
  *
  * @note    The default is @p TRUE.
- */
+**/
 #define CH_CFG_USE_MESSAGES                 TRUE
 
 /**
@@ -248,7 +248,7 @@
  * @note    The default is @p FALSE. Enable this if you have special
  *          requirements.
  * @note    Requires @p CH_CFG_USE_MESSAGES.
- */
+**/
 #define CH_CFG_USE_MESSAGES_PRIORITY        FALSE
 
 /**
@@ -258,7 +258,7 @@
  *
  * @note    The default is @p TRUE.
  * @note    Requires @p CH_CFG_USE_SEMAPHORES.
- */
+**/
 #define CH_CFG_USE_MAILBOXES                TRUE
 
 /**
@@ -266,7 +266,7 @@
  * @details If enabled then the I/O queues APIs are included in the kernel.
  *
  * @note    The default is @p TRUE.
- */
+**/
 #define CH_CFG_USE_QUEUES                   TRUE
 
 /**
@@ -275,7 +275,7 @@
  *          in the kernel.
  *
  * @note    The default is @p TRUE.
- */
+**/
 #define CH_CFG_USE_MEMCORE                  TRUE
 
 /**
@@ -287,7 +287,7 @@
  * @note    Requires @p CH_CFG_USE_MEMCORE and either @p CH_CFG_USE_MUTEXES or
  *          @p CH_CFG_USE_SEMAPHORES.
  * @note    Mutexes are recommended.
- */
+**/
 #define CH_CFG_USE_HEAP                     TRUE
 
 /**
@@ -296,7 +296,7 @@
  *          in the kernel.
  *
  * @note    The default is @p TRUE.
- */
+**/
 #define CH_CFG_USE_MEMPOOLS                 TRUE
 
 /**
@@ -307,23 +307,23 @@
  * @note    The default is @p TRUE.
  * @note    Requires @p CH_CFG_USE_WAITEXIT.
  * @note    Requires @p CH_CFG_USE_HEAP and/or @p CH_CFG_USE_MEMPOOLS.
- */
+**/
 #define CH_CFG_USE_DYNAMIC                  TRUE
 
-/** @} */
+/** @}**/
 
 /*===========================================================================*/
 /**
  * @name Debug options
  * @{
- */
+**/
 /*===========================================================================*/
 
 /**
  * @brief   Debug option, kernel statistics.
  *
  * @note    The default is @p FALSE.
- */
+**/
 #define CH_DBG_STATISTICS                   TRUE
 
 /**
@@ -332,7 +332,7 @@
  *          at runtime.
  *
  * @note    The default is @p FALSE.
- */
+**/
 #define CH_DBG_SYSTEM_STATE_CHECK           TRUE
 
 /**
@@ -341,7 +341,7 @@
  *          parameters are activated.
  *
  * @note    The default is @p FALSE.
- */
+**/
 #define CH_DBG_ENABLE_CHECKS                TRUE
 
 /**
@@ -351,7 +351,7 @@
  *          runtime anomalies and port-defined checks.
  *
  * @note    The default is @p FALSE.
- */
+**/
 #define CH_DBG_ENABLE_ASSERTS               TRUE
 
 /**
@@ -360,7 +360,7 @@
  *          activated.
  *
  * @note    The default is @p FALSE.
- */
+**/
 #define CH_DBG_ENABLE_TRACE                 TRUE
 
 /**
@@ -372,7 +372,7 @@
  *          It may not be implemented or some ports.
  * @note    The default failure mode is to halt the system with the global
  *          @p panic_msg variable set to @p NULL.
- */
+**/
 #define CH_DBG_ENABLE_STACK_CHECK           TRUE
 
 /**
@@ -382,7 +382,7 @@
  *          runtime measurement of the used stack.
  *
  * @note    The default is @p FALSE.
- */
+**/
 #define CH_DBG_FILL_THREADS                 TRUE
 
 /**
@@ -393,22 +393,22 @@
  * @note    The default is @p FALSE.
  * @note    This debug option is not currently compatible with the
  *          tickless mode.
- */
+**/
 #define CH_DBG_THREADS_PROFILING            TRUE
 
-/** @} */
+/** @}**/
 
 /*===========================================================================*/
 /**
  * @name Kernel hooks
  * @{
- */
+**/
 /*===========================================================================*/
 
 /**
  * @brief   Threads descriptor structure extension.
  * @details User fields added to the end of the @p thread_t structure.
- */
+**/
 #define CH_CFG_THREAD_EXTRA_FIELDS                                          \
     /* Add threads custom fields here.*/
 
@@ -418,7 +418,7 @@
  *
  * @note    It is invoked from within @p chThdInit() and implicitly from all
  *          the threads creation APIs.
- */
+**/
 #define CH_CFG_THREAD_INIT_HOOK(tp) {                                       \
         /* Add threads initialization code here.*/                                \
 }
@@ -430,7 +430,7 @@
  * @note    It is inserted into lock zone.
  * @note    It is also invoked when the threads simply return in order to
  *          terminate.
- */
+**/
 #define CH_CFG_THREAD_EXIT_HOOK(tp) {                                       \
         /* Add threads finalization code here.*/                                  \
 }
@@ -438,7 +438,7 @@
 /**
  * @brief   Context switch hook.
  * @details This hook is invoked just before switching between threads.
- */
+**/
 #define CH_CFG_CONTEXT_SWITCH_HOOK(ntp, otp) {                              \
         /* Context switch code here.*/                                            \
 }
@@ -448,7 +448,7 @@
  * @note    This hook is invoked within a critical zone, no OS functions
  *          should be invoked from here.
  * @note    This macro can be used to activate a power saving mode.
- */
+**/
 #define CH_CFG_IDLE_ENTER_HOOK() {                                         \
 }
 
@@ -457,14 +457,14 @@
  * @note    This hook is invoked within a critical zone, no OS functions
  *          should be invoked from here.
  * @note    This macro can be used to deactivate a power saving mode.
- */
+**/
 #define CH_CFG_IDLE_LEAVE_HOOK() {                                         \
 }
 
 /**
  * @brief   Idle Loop hook.
  * @details This hook is continuously invoked by the idle thread loop.
- */
+**/
 #define CH_CFG_IDLE_LOOP_HOOK() {                                           \
         /* Idle loop code here.*/                                                 \
 }
@@ -473,7 +473,7 @@
  * @brief   System tick event hook.
  * @details This hook is invoked in the system tick handler immediately
  *          after processing the virtual timers queue.
- */
+**/
 #define CH_CFG_SYSTEM_TICK_HOOK() {                                         \
         /* System tick event code here.*/                                         \
 }
@@ -482,7 +482,7 @@
  * @brief   System halt hook.
  * @details This hook is invoked in case to a system halting error before
  *          the system is halted.
- */
+**/
 #if !defined(_FROM_ASM_)
 #ifdef __cplusplus
 extern "C" {
@@ -491,22 +491,22 @@ void panic_handler(const char *reason);
 #ifdef __cplusplus
 }
 #endif
-#endif /* _FROM_ASM_ */
+#endif /* _FROM_ASM_**/
 #define CH_CFG_SYSTEM_HALT_HOOK(reason) {                                   \
         /* System halt code here.*/                                               \
         panic_handler(reason);                                                    \
 }
 
 
-/** @} */
+/** @}**/
 
 /*===========================================================================*/
-/* Port-specific settings (override port settings defaulted in chcore.h).    */
+/* Port-specific settings (override port settings defaulted in chcore.h).   **/
 /*===========================================================================*/
 
 // chprintf float enable
 #define CHPRINTF_USE_FLOAT true
 
-#endif  /* _CHCONF_H_ */
+#endif  /* _CHCONF_H_**/
 
-/** @} */
+/** @}**/
