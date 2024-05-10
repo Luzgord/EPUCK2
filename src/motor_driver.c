@@ -3,7 +3,7 @@
  * @brief    This source file contains function definitions for controlling motors.
 **/
 
-/*File from e-puck library*/
+/*Files from e-puck library*/
 #include <ch.h>
 #include <hal.h>
 #include <math.h>
@@ -35,7 +35,7 @@
 #define IR_FRONT_RIGHT 			0
 #define MIN_DISTANCE_TO_WALL 	110 //equal to approximately 4cm
 
-/*Siren define, for sound emmission*/
+/*Lights define, for sound emmission*/
 #define SIREN_LOOPS             5
 #define SIREN_HFREQ             150
 #define SIREN_LFREQ             100
@@ -48,13 +48,13 @@
 **/
 typedef enum __attribute__((__packed__)) operating_mode_t 
 {
-    SILENCE_MODE,    /**< Robot is in silence mode : nothing to do, wait for noise.**/
-    NOISE_MODE,      /**< Robot is in noise mode : search for the noise source.**/
-    WALL_DETECTED,   /**< Robot detected a wall : stop and make sound (beacon) with light if there is a wall.**/
+    SILENCE_MODE,       //Robot is in silence mode : nothing to do, wait for noise.
+    NOISE_MODE,         //Robot is in noise mode : search for the noise source.
+    WALL_DETECTED,      //Robot detected a wall : stop and make sound (beacon) with light if there is a wall.
 } operating_mode_t;
 
 /* Static condition for beacon activation */
-static bool enabled_giro = false;
+static bool enabled_lights = false;
 
 /************************* INTERNAL FUNCTIONS **********************************/
 
@@ -123,10 +123,10 @@ static void set_motor_speed(int16_t speed_right, int16_t speed_left){
 **/
 static void play_siren(void){
 	bool siren = 0;
-	dac_start();
+	dac_start();					//Need to start first before stopping
 	for (size_t i = 0; i < SIREN_LOOPS; ++i)
 	{
-		dac_stop();
+		dac_stop();					//Stops current sound	
 		siren =! siren;
 
 		if (siren == 0) {
@@ -139,7 +139,7 @@ static void play_siren(void){
 			chThdSleepMilliseconds(50);
 		}
 	}
-	dac_stop();
+	dac_stop();		//Stop for good
 }
 
 /**************************** THREAD *************************************/
@@ -167,15 +167,15 @@ static THD_FUNCTION(MotorRegulator, arg){
 		case SILENCE_MODE:			
 
 			if(sound_detected()){
-				enabled_giro = true;
+				enabled_lights = true;
 				mode = NOISE_MODE;
 			} else {
-				enabled_giro = false;
+				enabled_lights = false;
 			}
 			break;
 
 		case NOISE_MODE:
-			enabled_giro = true;
+			enabled_lights = true;
 
 			float diff_intensity = audio_get_diff_intensity_front_right() - audio_get_diff_intensity_front_left();
 
@@ -230,13 +230,12 @@ static THD_FUNCTION(MotorRegulator, arg){
 
 }
 
-/************************* EXTERNAL FUNCTION **********************************/
+/************************* EXTERNAL FUNCTIONS **********************************/
 
 void motor_regulator_start(void) {
 	chThdCreateStatic(waMotorRegulator, sizeof(waMotorRegulator), NORMALPRIO, MotorRegulator, NULL);
 }
 
-bool get_enabled_giro(void){
-	return enabled_giro;
+bool get_enabled_lights(void){
+	return enabled_lights;
 }
-

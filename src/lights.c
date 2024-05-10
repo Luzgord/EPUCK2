@@ -1,6 +1,6 @@
 /**
- * @file     siren.c
- * @brief    This file contains functions for controlling the siren.
+ * @file     lights.c
+ * @brief    This file contains functions for controlling the lights.
 **/
 
 /*File from e-puck library*/
@@ -9,33 +9,33 @@
 #include <usbcfg.h>
 #include <leds.h>
 /*Specific files*/
-#include "siren.h"
+#include "lights.h"
 #include "motor_driver.h"
 
 /**************************** THREAD *************************************/
 
-/* Siren thread, used to make the robot blink with its LEDs when a sound is detected.
+/* Lights thread, used to make the robot blink with its LEDs when a sound is detected.
    The robot will blink with in a X pattern as shown below:
     RGB_RED      ####   RGB_BLUE
-           \   ##    ##  /
-             #   FRONT   # 
+           \  ##      ##  /
+            #    FRONT   # 
            #              #     
            #              #
-             #   BACK   #
-          /    ##    ##   \
+            #    BACK    #
+          /   ##      ##   \
     RGB_BLUE     ####     RGB_RED
 */
 
-static THD_WORKING_AREA(waSiren, 16);
-static THD_FUNCTION(ThdSiren, arg) {
+static THD_WORKING_AREA(waLights, 16);
+static THD_FUNCTION(ThdLights, arg) {
 
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
-	/*Condition use to have a X blink pattern*/
+	//Condition use to have a X blink pattern
 	bool first_blink = true;
 
     while(1) {
-		if(get_enabled_giro()){
+		if(get_enabled_lights()){
 			if(first_blink){
 				set_rgb_led(LED2, 0, 0, RGB_MAX_INTENSITY); 
 				set_rgb_led(LED6,  0, 0, RGB_MAX_INTENSITY);
@@ -55,8 +55,8 @@ static THD_FUNCTION(ThdSiren, arg) {
 	}
 }
 
-/************************* PUBLIC FUNCTION **********************************/
+/************************* PUBLIC FUNCTIONS **********************************/
 
-void siren_start(void) {
-    chThdCreateStatic(waSiren, sizeof(waSiren), NORMALPRIO, ThdSiren, NULL);
+void lights_start(void) {
+    chThdCreateStatic(waLights, sizeof(waLights), NORMALPRIO, ThdLights, NULL);
 }

@@ -21,8 +21,7 @@
 #include "main.h"
 #include "audio_processing.h"
 #include "fft.h"
-#include "communications.h"
-#include "siren.h"
+#include "lights.h"
 #include "motor_driver.h"
 
 static void serial_start(void){
@@ -61,7 +60,7 @@ int main(void) {
 
     // Start our threads   
     motor_regulator_start();
-    siren_start(); 
+    lights_start(); 
 
     while (1) {
         chThdSleepMilliseconds(1000);
