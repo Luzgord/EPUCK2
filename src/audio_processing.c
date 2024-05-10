@@ -5,7 +5,7 @@
 // #include <chprintf.h>
 #include <motors.h>
 #include <audio/microphone.h>
-// #include <arm_math.h>
+#include <arm_math.h>
 
 /* Specific files for this project**/
 #include "audio_processing.h"
@@ -13,10 +13,10 @@
 #include "fft.h"
 // #include "communications.h"
 
-/* Minimum value to detect a peak**/
+/* Minimum value to detect a peak */
 #define FFT_SIZE 				1024	
 #define MAX_VALUE_PTR_FFT_SIZE 	512
-/* Frequency range for analysis**/
+/* Frequency range for analysis */
 #define MIN_FREQ            10	        // We don't analyze before this index equivalent to approximately 156[Hz] 
 #define MAX_FREQ            30	        // We don't analyze after this index equivalent to approximately 469[Hz] 
 
@@ -73,7 +73,6 @@ void find_direction(void)
     diff_intensity_avg_front_left = *ptr_avg_front_intensity - *ptr_avg_left_intensity;
     diff_intensity_avg_front_right = *ptr_avg_front_intensity - *ptr_avg_right_intensity;
 }
-
 
 /************************* EXTERNAL FUNCTION **********************************/
 
