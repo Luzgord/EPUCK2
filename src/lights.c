@@ -44,7 +44,7 @@ static THD_FUNCTION(ThdLights, arg) {
 				toggle_rgb_led(LED2, BLUE_LED, RGB_MAX_INTENSITY);
 				toggle_rgb_led(LED4, RED_LED, RGB_MAX_INTENSITY);
 				toggle_rgb_led(LED6, BLUE_LED, RGB_MAX_INTENSITY);
-				toggle_rgb_led(LED8, GREEN_LED, RGB_MAX_INTENSITY);
+				toggle_rgb_led(LED8, RED_LED, RGB_MAX_INTENSITY);
 			}
 			
 		} else {

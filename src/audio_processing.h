@@ -8,19 +8,6 @@
 
 #include <stdint.h>
 
-typedef enum {
-    // 2 times FFT_SIZE because these arrays contain complex numbers (real + imaginary)
-    LEFT_CMPLX_INPUT = 0,
-    RIGHT_CMPLX_INPUT,
-    FRONT_CMPLX_INPUT,
-    BACK_CMPLX_INPUT,
-    // Arrays containing the computed magnitude of the complex numbers
-    LEFT_OUTPUT,
-    RIGHT_OUTPUT,
-    FRONT_OUTPUT,
-    BACK_OUTPUT
-} BUFFER_NAME_t;
-
 /**
  * @brief Callback called when the demodulation of the four microphones is done.
  * We get 160 samples per mic every 10ms (16kHz)

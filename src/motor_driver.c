@@ -18,8 +18,8 @@
 #include "audio_processing.h"
 
 /*PD regulator define*/
-#define KP						0.2f
-#define KD 						0.0f //1000.0f
+#define KP						0.3f
+#define KD 						0.0000001f
 
 /*Speed rotation define*/
 #define ROTATION_THRESHOLD		10
@@ -202,16 +202,13 @@ static THD_FUNCTION(MotorRegulator, arg){
 				mode = WALL_DETECTED;
 			}
 
-			if(!sound_detected()){				
-				mode = SILENCE_MODE;
-			}	
 			break;
 
 		case WALL_DETECTED:
 		
 			set_motor_speed(NO_CORRECTION, NO_CORRECTION);
 
-			if(!wall_detection() && !sound_detected()){
+			if(!wall_detection() || !sound_detected()){
 				mode = SILENCE_MODE;
 			}
 			
