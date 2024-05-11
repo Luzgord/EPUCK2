@@ -11,8 +11,8 @@
 
 <!-- AUTHORS -->
 ## Authors
-Mouhamad Rawas (mouhamad.rawas@epfl.ch)
-Maxime Luyet (maxime.luyet@epfl.ch)
+* Mouhamad Rawas (mouhamad.rawas@epfl.ch)
+* Maxime Luyet (maxime.luyet@epfl.ch)
  
 <!-- ABOUT THE PROJECT -->
 ## About The Project

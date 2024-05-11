@@ -24,17 +24,6 @@
 #include "lights.h"
 #include "motor_driver.h"
 
-static void serial_start(void){
-	static SerialConfig ser_cfg = {
-	    115200,
-	    0,
-	    0,
-	    0,
-	};
-
-	sdStart(&SD3, &ser_cfg); // UART3.
-}
-
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
 CONDVAR_DECL(bus_condvar);
@@ -47,10 +36,6 @@ int main(void) {
     mpu_init();   
     spi_comm_start();  // Starts the SPI communication for rgb leds 
     messagebus_init(&bus, &bus_lock, &bus_condvar);
-
-    // Starts the serial communication
-    serial_start();    // UART3 for serial communication
-    // usb_start();       // USB for serial communication
 
     // Starts specific threads or functions from the epuck2 library
     clear_leds();

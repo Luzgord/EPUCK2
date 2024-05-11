@@ -41,7 +41,8 @@
 #define SIREN_LFREQ             100
 
 /*Selector define for oral presentation only*/
-#define SELECTOR_POS_9          8
+#define SELECTOR_POS_7         7
+#define SELECTOR_POS_8          8
 
 /**
  * @brief Operating modes of the robot, packed to use one byte only.
@@ -189,7 +190,7 @@ static THD_FUNCTION(MotorRegulator, arg){
         	speed_correction = NO_CORRECTION;
         	}
 			// Following condition is only for the oral presentation, to show the pd controller
-			if(get_selector() == SELECTOR_POS_9){			
+			if(get_selector() == SELECTOR_POS_8){			
 				speed = NO_CORRECTION;
 			} else {
 				speed = CONST_SPEED;
@@ -200,6 +201,11 @@ static THD_FUNCTION(MotorRegulator, arg){
 			// Transition conditions to other modes
 			if(wall_detection()){
 				mode = WALL_DETECTED;
+			}
+			// Condition for to show a resonance problem during the oral presentation
+			if(!sound_detected() && (get_selector() == SELECTOR_POS_7)){
+				set_motor_speed(NO_CORRECTION, NO_CORRECTION);
+				mode = SILENCE_MODE;				
 			}
 
 			break;
