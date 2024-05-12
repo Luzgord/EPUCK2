@@ -2,7 +2,6 @@
 #include <ch.h>
 #include <hal.h>
 #include <usbcfg.h>
-// #include <chprintf.h>
 #include <motors.h>
 #include <audio/microphone.h>
 #include <arm_math.h>
@@ -113,13 +112,11 @@ void processAudioData(int16_t *data, uint16_t num_samples)
         doFFT_optimized(FFT_SIZE, micRight_cmplx_input);
         doFFT_optimized(FFT_SIZE, micLeft_cmplx_input);
         doFFT_optimized(FFT_SIZE, micFront_cmplx_input);
-        // doFFT_optimized(FFT_SIZE, micBack_cmplx_input);
 
         /* Magnitude processing**/
         arm_cmplx_mag_f32(micRight_cmplx_input, micRight_output, FFT_SIZE);
         arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
         arm_cmplx_mag_f32(micFront_cmplx_input, micFront_output, FFT_SIZE);
-        // arm_cmplx_mag_f32(micBack_cmplx_input, micBack_output, FFT_SIZE);
 
         nb_samples = 0;
 

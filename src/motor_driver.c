@@ -20,26 +20,21 @@
 /*PD regulator define*/
 #define KP						0.3f
 #define KD 						0.0000001f
-
 /*Speed rotation define*/
 #define ROTATION_THRESHOLD		10
 #define ROTATION_COEFF			1 
 #define NO_CORRECTION			0
 #define CONST_SPEED             500
-
 /*Sound sensibility threshold define*/
 #define SOUND_THRESHOLD			1000
-
 /*IR sensors define*/
 #define IR_FRONT_LEFT 			7
 #define IR_FRONT_RIGHT 			0
 #define MIN_DISTANCE_TO_WALL 	110 //equal to approximately 4cm
-
 /*Lights define, for sound emmission*/
 #define SIREN_LOOPS             5
 #define SIREN_HFREQ             150
 #define SIREN_LFREQ             100
-
 /*Selector define for oral presentation only*/
 #define SELECTOR_POS_7          7
 #define SELECTOR_POS_8          8
