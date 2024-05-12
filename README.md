@@ -21,3 +21,4 @@ Using a [e-puck robot](http://www.e-puck.org/), this project simulates an angry 
 <!-- VIDEO -->
 ## Video
 
+https://github.com/EPFL-MICRO-315/tps-2024-group-rawas-luyet/assets/77929733/9c22cc54-b0e2-43fb-b5a8-de459ff9e47a
