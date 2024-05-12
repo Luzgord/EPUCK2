@@ -6,7 +6,6 @@
 #include <motors.h>
 #include <audio/microphone.h>
 #include <arm_math.h>
-
 /* Specific files for this project**/
 #include "audio_processing.h"
 #include "main.h"
@@ -23,13 +22,11 @@
 static float micLeft_cmplx_input[2 * FFT_SIZE];
 static float micRight_cmplx_input[2 * FFT_SIZE];
 static float micFront_cmplx_input[2 * FFT_SIZE];
-static float micBack_cmplx_input[2 * FFT_SIZE];
 
 /* Arrays containing the computed magnitude of the complex numbers */
 static float micLeft_output[FFT_SIZE];
 static float micRight_output[FFT_SIZE];
 static float micFront_output[FFT_SIZE];
-static float micBack_output[FFT_SIZE];
 
 /* Values used to compute the orientation */
 static float diff_intensity_avg_front_left = 0;
@@ -93,14 +90,12 @@ void processAudioData(int16_t *data, uint16_t num_samples)
         // Construct an array of complex numbers. Put 0 to the imaginary part
         micRight_cmplx_input[nb_samples] = (float)data[i + MIC_RIGHT];
         micLeft_cmplx_input[nb_samples] = (float)data[i + MIC_LEFT];
-        micBack_cmplx_input[nb_samples] = (float)data[i + MIC_BACK];
         micFront_cmplx_input[nb_samples] = (float)data[i + MIC_FRONT];
 
         nb_samples++;
 
         micRight_cmplx_input[nb_samples] = 0;
         micLeft_cmplx_input[nb_samples] = 0;
-        micBack_cmplx_input[nb_samples] = 0;
         micFront_cmplx_input[nb_samples] = 0;
 
         nb_samples++;
@@ -118,13 +113,13 @@ void processAudioData(int16_t *data, uint16_t num_samples)
         doFFT_optimized(FFT_SIZE, micRight_cmplx_input);
         doFFT_optimized(FFT_SIZE, micLeft_cmplx_input);
         doFFT_optimized(FFT_SIZE, micFront_cmplx_input);
-        doFFT_optimized(FFT_SIZE, micBack_cmplx_input);
+        // doFFT_optimized(FFT_SIZE, micBack_cmplx_input);
 
         /* Magnitude processing**/
         arm_cmplx_mag_f32(micRight_cmplx_input, micRight_output, FFT_SIZE);
         arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
         arm_cmplx_mag_f32(micFront_cmplx_input, micFront_output, FFT_SIZE);
-        arm_cmplx_mag_f32(micBack_cmplx_input, micBack_output, FFT_SIZE);
+        // arm_cmplx_mag_f32(micBack_cmplx_input, micBack_output, FFT_SIZE);
 
         nb_samples = 0;
 

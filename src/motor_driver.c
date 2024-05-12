@@ -41,7 +41,7 @@
 #define SIREN_LFREQ             100
 
 /*Selector define for oral presentation only*/
-#define SELECTOR_POS_7         7
+#define SELECTOR_POS_7          7
 #define SELECTOR_POS_8          8
 
 /**
@@ -140,7 +140,7 @@ static void play_siren(void){
 			chThdSleepMilliseconds(50);
 		}
 	}
-	dac_stop();		//Stop for good
+	dac_stop();
 }
 
 /**************************** THREAD *************************************/
@@ -230,7 +230,6 @@ static THD_FUNCTION(MotorRegulator, arg){
 		}
 		chThdSleepUntilWindowed(time, time + MS2ST(10));
 	}
-
 }
 
 /************************* EXTERNAL FUNCTIONS **********************************/

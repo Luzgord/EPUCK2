@@ -19,7 +19,7 @@
     RGB_RED      ####   RGB_BLUE
            \  ##      ##  /
             #    FRONT   # 
-           #              #     
+           #              #
            #              #
             #    BACK    #
           /   ##      ##   \
